@@ -1,0 +1,52 @@
+<!DOCCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% include 'stylesheet.css' %}
+</head>
+<body>
+
+<h1>MB calibration CI</h1>
+<p>OGGM Version: {{ version }}.</p>
+<p>Output created: {{ date }}.</p> 
+
+{{ previous }}
+{{ next }}
+<p></p>
+
+<div class="dr pd wn">
+<button onclick="myFunction()" class="dropbtn">Select glacier</button>
+  <div id="myDropdown" class="dropdown-content">
+    <input type="text" placeholder="Search.." id="myInput" onkeyup="filterFunction()">
+    {% if index %}
+      {% include 'linklistindex.html' %}
+    {% else %}
+      {% include 'linklist.html' %}
+    {% endif %}
+  </div>
+</div>
+
+   {% include 'ddscript.html' %}
+
+<article>
+   <h1>{{ glcname }}</h1>
+   <img src="{{ glcimg }}" width="1200" height="500">
+  <h3>Some statistic:</h3>
+  <p>{{ bias1 }}</p>
+  <p>{{ bias2 }}</p>
+</article>
+
+
+{% if crossval %}
+   <article>
+      {% for cv in cvplots %}
+      <img src="plots/{{ cv }}" width="1300" height="700">
+      {% endfor %}
+   </article>
+{% endif %}
+
+</body>
+</html>
+
+
+

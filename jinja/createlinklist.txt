@@ -1,0 +1,3 @@
+{% for glc in glaciers %}
+   <a href="{{ glc.link }}"> {{ glc.linkname }} </a>
+{% endfor %}

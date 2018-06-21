@@ -161,13 +161,12 @@ def initialization_selection(region=None):
     # Initialize OGGM and set up the run parameters
     cfg.initialize()
 
-    # Local paths (where to write the OGGM run output)
-    working_dir = os.path.join(os.path.expanduser('~'),
-                               'crossvalidate_oggm_parameters',
-                               'OGGM_RGIV{}_OGGM{}'.format(
-                                   rgi_version, oggm.__version__))
-    utils.mkdir(working_dir)
-    cfg.PATHS['working_dir'] = working_dir
+    SLURM_WORKDIR = os.environ["WORKDIR"]
+    # Local paths (where to write output and where to download input)
+    WORKING_DIR = SLURM_WORKDIR
+    utils.mkdir(WORKING_DIR)
+    cfg.PATHS['working_dir'] = WORKING_DIR
+
     cfg.PATHS['rgi_version'] = rgi_version
 
     # We are running the calibration ourselves

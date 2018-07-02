@@ -1,3 +1,8 @@
 mbcrossval/__pycache__
 mbcrossval/.ropeproject
 mbcrossval/version.py
+
+mbcrossval.egg-info/
+
+jinja_templates/linklist.html
+jinja_templates/linklistindex.html

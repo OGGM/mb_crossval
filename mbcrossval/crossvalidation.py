@@ -37,7 +37,7 @@ def preprocessing(gdirs):
     return gdirs
 
 
-def calibration(gdirs, xval):
+def calibration(gdirs, xval, major=0):
     # Climate tasks
     # do once per parameter set
     with utils.DisableLogger():
@@ -47,12 +47,12 @@ def calibration(gdirs, xval):
         execute_entity_task(tasks.apparent_mb, gdirs)
 
     # do the crossvalidation
-    xval = quick_crossval(gdirs, xval)
+    xval = quick_crossval(gdirs, xval, major=major)
 
     return xval
 
 
-def quick_crossval(gdirs, xval):
+def quick_crossval(gdirs, xval, major=0):
     # following climate.quick_crossval_t_stars
     # but minimized for performance
 
@@ -132,6 +132,13 @@ def quick_crossval(gdirs, xval):
                                        'core': rcor
                                        }
 
+        if not major:
+            # store cross validated values
+            full_ref_df.loc[rid, 'cv_tstar'] = int(rdf['t_star'].values[0])
+            full_ref_df.loc[rid, 'cv_mustar'] = rdf['mu_star'].values[0]
+            full_ref_df.loc[rid, 'cv_bias'] = rdf['bias'].values[0]
+            full_ref_df.loc[rid, 'cv_prcp_fac'] = rdf['prcp_fac'].values[0]
+
     # and store mean values
     std_quot = np.mean(tmpdf.std_oggm/tmpdf.std_ref)
 
@@ -144,15 +151,32 @@ def quick_crossval(gdirs, xval):
                                  'rmse': tmpdf['rmse'].mean(),
                                  'core': tmpdf['core'].mean()}
 
-    # maybe: do test here if MB is approximately 0 for each glacier!
+    if major:
+        return xval
+    else:
+        for i, rid in enumerate(full_ref_df.index):
+            # the glacier to look at
+            gdir = full_ref_df.loc[full_ref_df.index == rid]
+            # the reference glaciers
+            tmp_ref_df = full_ref_df.loc[full_ref_df.index != rid]
 
-    # write
-    file = os.path.join(cfg.PATHS['working_dir'], 'crossval_tstars.csv')
-    full_ref_df.to_csv(file)
+            # Compute the distance
+            distances = utils.haversine(gdir.lon.values[0], gdir.lat.values[0],
+                                        tmp_ref_df.lon, tmp_ref_df.lat)
 
-    do not write csv file, but store the needed values within xval_minor_statistics
+            # Take the 10 closests
+            aso = np.argsort(distances)[0:9]
+            amin = tmp_ref_df.iloc[aso]
+            distances = distances[aso] ** 2
+            interp = np.average(amin.mustar, weights=1. / distances)
+            full_ref_df.loc[rid, 'interp_mustar'] = interp
+        # write
+        file = os.path.join(cfg.PATHS['working_dir'], 'crossval_tstars.csv')
+        full_ref_df.to_csv(file)
+        # alternative: do not write csv file, but store the needed values
+        # within xval_minor_statistics
 
-    return xval
+        return xval
 
 
 def initialization_selection(working_dir, region=None, rgi_version='6'):
@@ -230,17 +254,10 @@ def initialization_selection(working_dir, region=None, rgi_version='6'):
 
 
 def minor_xval_statistics(gdirs):
-    # Read the rgi file
-    rgidf = gpd.read_file(os.path.join(cfg.PATHS['working_dir'],
-                                       'mb_ref_glaciers.shp'))
-
     # initialize the pandas dataframes
 
     # to store mass balances of every glacier
     mbdf = pd.DataFrame([], index=np.arange(1850, 2050))
-
-    # Go - initialize working directories
-    gdirs = workflow.init_glacier_regions(rgidf)
 
     # Cross-validation
     file = os.path.join(cfg.PATHS['working_dir'], 'crossval_tstars.csv')
@@ -249,8 +266,14 @@ def minor_xval_statistics(gdirs):
     # dataframe output
     xval = pd.DataFrame([], columns=['RGIId',
                                      'Name',
-                                     'Tstar bias',
-                                     'Xval bias'])
+                                     'tstar_bias',
+                                     'xval_bias',
+                                     'interp_bias',
+                                     'mustar',
+                                     'tstar',
+                                     'xval_mustar',
+                                     'xval_tstar',
+                                     'interp_mustar'])
 
     for gd in gdirs:
         t_cvdf = cvdf.loc[gd.rgi_id]
@@ -305,10 +328,16 @@ def minor_xval_statistics(gdirs):
         ibias = cvdf.loc[gd.rgi_id, 'INTERP_MB_BIAS']
         xval = xval.append({'Name': gd.name,
                             'RGIId': gd.rgi_id,
-                            'Tstar bias': tbias,
-                            'Xval bias': xbias,
-                            'Interpolated bias': ibias},
+                            'tstar_bias': tbias,
+                            'xval_bias': xbias,
+                            'interp_bias': ibias,
+                            'mustar': t_cvdf.mustar,
+                            'tstar': t_cvdf.tstar,
+                            'xval_mustar': t_cvdf.cv_mustar,
+                            'xval_tstar': t_cvdf.cv_tstar,
+                            'interp_mustar': t_cvdf.interp_mustar},
                            ignore_index=True)
+
         #
         # 2. mass balance timeseries
         mbarray = np.dstack((refmb.ANNUAL_BALANCE,
@@ -316,7 +345,7 @@ def minor_xval_statistics(gdirs):
                              refmb.OGGM_cv)).squeeze()
 
         mbdf_add = pd.DataFrame(mbarray,
-                                columns=[[gd.rgi_id, gd.rgi_id, gd.rdi_id],
+                                columns=[[gd.rgi_id, gd.rgi_id, gd.rgi_id],
                                          ['measured',
                                           'calibrated',
                                           'crossvalidated']],
@@ -326,5 +355,7 @@ def minor_xval_statistics(gdirs):
     mbdf.columns = pd.MultiIndex.from_tuples(mbdf.columns)
 
     mbdf = mbdf.dropna(how='all')
+
+    xval.index = xval.RGIId
 
     return xval, mbdf

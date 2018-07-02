@@ -13,19 +13,23 @@ import pickle
 
 # Local imports
 import oggm
-from oggm import cfg
-from crossvalidation import initialization_selection, preprocessing
-from crossvalidation import calibration, minor_xval_statistics
+from oggm import cfg, utils
+from mbcrossval.crossvalidation import initialization_selection, preprocessing
+from mbcrossval.crossvalidation import calibration, minor_xval_statistics
+from mbcrossval.crossval_plots import crossval_timeseries, crossval_histogram
+from mbcrossval.crossval_website import create_website
 
 # Module logger
 log = logging.getLogger(__name__)
 
 
-def run_major_crossvalidation(working_dir, region=None, rgi_version='6'):
+def run_major_crossvalidation(working_dir, storage_dir, region=None,
+                              rgi_version='6'):
     # Initialize OGGM and set up the run parameters
 
     # initialization, select region if wanted and return GDIRs
-    gdirs = initialization_selection(working_dir)
+    gdirs = initialization_selection(working_dir, region=region,
+                                     rgi_version=rgi_version)
 
     # some preprocessing
     gdirs = preprocessing(gdirs)
@@ -59,7 +63,7 @@ def run_major_crossvalidation(working_dir, region=None, rgi_version='6'):
                     # execute calibraion and crossvalidation
                     log.info('prcpSF={}, Tliq={}, Tmelt={}, Tgrad={}'.format(
                         PR, TL, TM, TG))
-                    xval = calibration(gdirs, xval)
+                    xval = calibration(gdirs, xval, major=1)
 
                     if runs % np.round(totalruns/100) == 0:
                         log.info('%3d percent of total runs' %
@@ -70,15 +74,17 @@ def run_major_crossvalidation(working_dir, region=None, rgi_version='6'):
                'date_created': datetime.datetime.now().strftime('%Y-%m-%d'),
                'oggmversion': oggm.__version__}
 
-    pout = os.path.join(working_dir, 'xval_major.p')
+    pout = os.path.join(storage_dir, 'xval_%s_major.p' % oggm.__version__)
     pickle.dump(outdict, open(pout, 'wb'))
 
 
-def run_minor_crossvalidation(working_dir, region=None, rgi_version='6'):
+def run_minor_crossvalidation(working_dir, storage_dir, region=None,
+                              rgi_version='6'):
     # Initialize OGGM and set up the run parameters
 
     # initialization, select region if wanted and return GDIRs
-    gdirs = initialization_selection(working_dir)
+    gdirs = initialization_selection(working_dir, region=region,
+                                     rgi_version=rgi_version)
 
     # some preprocessing
     gdirs = preprocessing(gdirs)
@@ -89,7 +95,7 @@ def run_minor_crossvalidation(working_dir, region=None, rgi_version='6'):
     xval = pd.DataFrame([], columns=['prcpsf', 'tliq', 'tmelt', 'tgrad',
                                      'std_quot', 'bias', 'rmse', 'core'])
 
-    xval = calibration(gdirs, xval)
+    xval = calibration(gdirs, xval, major=0)
 
     xval_perglacier, mb_perglacier = minor_xval_statistics(gdirs)
 
@@ -99,7 +105,7 @@ def run_minor_crossvalidation(working_dir, region=None, rgi_version='6'):
                'date_created': datetime.datetime.now().strftime('%Y-%m-%d'),
                'oggmversion': oggm.__version__}
 
-    pout = os.path.join(working_dir, 'xval_minor.p')
+    pout = os.path.join(storage_dir, 'xval_%s_minor.p' % oggm.__version__)
     pickle.dump(outdict, open(pout, 'wb'))
 
 
@@ -117,11 +123,21 @@ if __name__ == '__main__':
     # RGI Version
     rgi_version = '6'
     #
+    # Which OGGM version
+    oggmversion = oggm.__version__
+    #
     # OGGM working directory
     working_dir = '/home/matthias/crossvalidate_oggm_parameters/tmp'
     #
+    # Storage directory
+    storage_dir = '/home/matthias/crossvalidate_oggm_parameters/storage'
+    #
     # Website root directory
-    webroot = ''
+    webroot = '/home/matthias/crossvalidate_oggm_parameters/website'
+    #
+    # Plotdir
+    plotdir = os.path.join(webroot, oggmversion, 'plots')
+    utils.mkdir(plotdir)
     #
     # Decide which tasks to run:
     #
@@ -131,15 +147,17 @@ if __name__ == '__main__':
     #
     # run_minor_crossvalidataion runs the crossvalidation with the
     #   standard parameter. Only necessary if major_crossval is not run.
-    run_minor_crossval = 1
+    run_minor_crossval = 0
     #
     # decide if crossvalidation plots are made or not
-    #   If run_major_crossvalidataion == 1, the boxwhisker plots will be made
-    make_crossval_plots = 1
+    make_minor_plots = 0
+    make_major_plots = 0
     #
     # decide if a website will be created from the results
-    website = 0
+    make_website = 1
     #
+    # directory where jinja is stored
+    jinjadir = '/home/matthias/crossvalidate_oggm_parameters/mb_crossval/jinja_templates'
     # --------------------------------------------------------------
     #
 
@@ -147,13 +165,15 @@ if __name__ == '__main__':
     # Run options
     #
     if run_major_crossval:
-        run_major_crossvalidation(working_dir)
+        run_major_crossvalidation(working_dir, storage_dir)
 
     if run_minor_crossval:
-        run_minor_crossvalidation(working_dir, region=region)
+        run_minor_crossvalidation(working_dir, storage_dir, region=region)
 
-    # if make_crossval_plots:
-    #     make_crossvalidation_plots
+    if make_minor_plots:
+        file = os.path.join(storage_dir, 'xval_%s_minor.p' % oggmversion)
+        crossval_timeseries(file, plotdir)
+        crossval_histogram(file, plotdir)
 
-    # if website:
-    #     make_website(webroot)
+    if make_website:
+        create_website(webroot, jinjadir, storage_dir)

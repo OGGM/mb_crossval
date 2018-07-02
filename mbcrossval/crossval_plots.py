@@ -1,18 +1,13 @@
 # -*- coding: utf-8 -*-
 # Plot
-import matplotlib
-#matplotlib.use('TkAgg')  # noqa
 import matplotlib.pyplot as plt
 
 import os
 
 # Libs
 import numpy as np
-import geopandas as gpd
 import pandas as pd
 import pickle
-
-from oggm import utils, workflow, cfg
 
 
 def crossval_boxwhisker(xval):

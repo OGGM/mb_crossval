@@ -29,8 +29,7 @@ def create_website(webroot, jinjadir, storage_dir):
 
     for x in os.listdir(storage_dir):
         parts = x.split('_')
-        if (parts[0] == 'xval') and ((parts[2] == 'minor.p') or
-                                     (parts[2] == 'major.p')):
+        if (parts[0] == 'xval') and (parts[2] == 'minor.p'):
 
             # make webdir
             webdir = os.path.join(webroot, parts[1], 'web')
@@ -57,19 +56,28 @@ def create_website(webroot, jinjadir, storage_dir):
     vdf = vdf.sort_values(by='version')
     vdf.index = np.arange(len(vdf))
 
-
     for nr, vers in vdf.iterrows():
 
         # read data
         xvaldict = pickle.load(open(vers['file'], 'rb'))
         df = xvaldict['per_glacier']
 
-        # take care of mean values
-        df.loc['Overview', 'Name'] = ''
-        df.loc['Overview', 'RGIId'] = 'Overview'
-        df.loc['Overview', 'tstar_bias'] = df.tstar_bias.mean()
-        df.loc['Overview', 'xval_bias'] = df.xval_bias.mean()
+        # sort array
+        df.sort_values('Name', inplace=True)
+        # move glaciers without name to the end
+        df = pd.concat([df.loc[df.Name != ''], df.loc[df.Name == '']])
+        # concatenate the overview to the beginning
+        df = pd.concat([pd.DataFrame([{'Name': '',
+                                       'RGIId' : 'Overview',
+                                       'xval_bias': df.xval_bias.mean(),
+                                       'tstar_bias': df.tstar_bias.mean()}]),
+                        df],
+                       ignore_index=True)
 
+        # set index ot RGIId
+        df.index = df.RGIId
+
+        #
         #
         # LINKNAMEs
         df['linkname'] = df.RGIId

@@ -10,7 +10,10 @@ import pandas as pd
 import pickle
 
 
-def crossval_boxwhisker(xval):
+def crossval_boxplot(file, pltdir):
+    # load pickle file
+    xvaldict = pickle.load(open(file, 'rb'))
+    xval = xvaldict['statistic']
 
     # for convenience
     xval.tgrad *= 1000
@@ -56,6 +59,7 @@ def crossval_boxwhisker(xval):
                      positions=base[var], widths=0.2)
         base.plot(x=var, y='bias', kind='scatter', ax=ax1, color='r',
                   linewidth=3)
+        ax1.plot(ax1.get_xlim(), (0.0, 0.0), 'k-', linewidth=1)
         ax1.set_ylabel('mean bias')
         ax1.set_xlabel('')
         ax1.set_title('')
@@ -66,6 +70,7 @@ def crossval_boxwhisker(xval):
                      positions=base[var], widths=0.2)
         base.plot(x=var, y='std_quot', kind='scatter', ax=ax2, color='r',
                   linewidth=3)
+        ax2.plot(ax2.get_xlim(), (1.0, 1.0), 'k-', linewidth=1)
         ax2.set_xlabel(labels[var])
         ax2.set_ylabel('mean std quotient')
         ax2.set_title('')
@@ -86,7 +91,8 @@ def crossval_boxwhisker(xval):
         f.suptitle('Crossvalidation results with respect to %s' % title[var])
 
         # f.tight_layout()
-        f.savefig(var + '_crossval_box.png', format='png')
+        plotname = os.path.join(pltdir, '%s_crossval_box.png' % var)
+        f.savefig(plotname, format='png')
 
     plt.show()
 

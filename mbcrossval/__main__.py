@@ -17,6 +17,7 @@ from oggm import cfg, utils
 from mbcrossval.crossvalidation import initialization_selection, preprocessing
 from mbcrossval.crossvalidation import calibration, minor_xval_statistics
 from mbcrossval.crossval_plots import crossval_timeseries, crossval_histogram
+from mbcrossval.crossval_plots import crossval_boxplot
 from mbcrossval.crossval_website import create_website
 
 # Module logger
@@ -125,6 +126,7 @@ if __name__ == '__main__':
     #
     # Which OGGM version
     oggmversion = oggm.__version__
+    # oggmversion = '1.0.0+60.g3266ece'
     #
     # OGGM working directory
     working_dir = '/home/matthias/crossvalidate_oggm_parameters/tmp'
@@ -174,6 +176,10 @@ if __name__ == '__main__':
         file = os.path.join(storage_dir, 'xval_%s_minor.p' % oggmversion)
         crossval_timeseries(file, plotdir)
         crossval_histogram(file, plotdir)
+
+    if make_major_plots:
+        file = os.path.join(storage_dir, 'xval_%s_major.p' % oggmversion)
+        crossval_boxplot(file, plotdir)
 
     if make_website:
         create_website(webroot, jinjadir, storage_dir)

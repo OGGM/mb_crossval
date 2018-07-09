@@ -108,6 +108,8 @@ def create_website(webroot, jinjadir, storage_dir):
         fallback = env.get_template('fallback.html')
         for idx, glc in df.iterrows():
 
+            crossval = 0
+
             # DIFFERENT VALUES DEPENDING ON INDEX OR GLACIER
             if glc.RGIId == 'Overview':
                 # first: index
@@ -138,7 +140,6 @@ def create_website(webroot, jinjadir, storage_dir):
                 imgname = '../plots/%s.png' % glc['RGIId']
                 index = 0
                 linksuffix = '../../'
-                crossval = 0
                 cvplots = ''
 
             #

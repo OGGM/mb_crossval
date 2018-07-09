@@ -65,11 +65,12 @@ def run_major_crossvalidation(working_dir, storage_dir, region=None,
                     log.info('prcpSF={}, Tliq={}, Tmelt={}, Tgrad={}'.format(
                         PR, TL, TM, TG))
                     xval = calibration(gdirs, xval, major=1)
-
+                    """
                     if runs % np.round(totalruns/100) == 0:
                         log.info('%3d percent of total runs' %
                                  runs/np.round(totalruns/100))
                     runs += 1
+                    """
 
     outdict = {'statistic': xval,
                'date_created': datetime.datetime.now().strftime('%Y-%m-%d'),
@@ -119,23 +120,25 @@ if __name__ == '__main__':
     # Limit crossvalidation to a single RGI region. Either for reduced runtime.
     #   Or due to regional climate data (e.g. HISTALP)
     #   Alps = '11', All reference glaciers = None
-    region = '11'
+    region = None
     #
     # RGI Version
     rgi_version = '6'
     #
     # Which OGGM version
     oggmversion = oggm.__version__
-    # oggmversion = '1.0.0+60.g3266ece'
     #
     # OGGM working directory
-    working_dir = '/home/matthias/crossvalidate_oggm_parameters/tmp'
+    working_dir = os.environ['WORKDIR']
+    utils.mkdir(working_dir)
     #
     # Storage directory
-    storage_dir = '/home/matthias/crossvalidate_oggm_parameters/storage'
+    storage_dir = '/home/users/mdusch/crossvalidation/storage'
+    utils.mkdir(storage_dir)
     #
     # Website root directory
-    webroot = '/home/matthias/crossvalidate_oggm_parameters/website'
+    webroot = '/home/www/mdusch/ci'
+    utils.mkdir(webroot)
     #
     # Plotdir
     plotdir = os.path.join(webroot, oggmversion, 'plots')
@@ -152,25 +155,26 @@ if __name__ == '__main__':
     run_minor_crossval = 0
     #
     # decide if crossvalidation plots are made or not
-    make_minor_plots = 0
-    make_major_plots = 0
+    make_minor_plots = 1
+    make_major_plots = 1
     #
     # decide if a website will be created from the results
     make_website = 1
     #
     # directory where jinja is stored
-    jinjadir = '/home/matthias/crossvalidate_oggm_parameters/mb_crossval/jinja_templates'
+    jinjadir = '/home/users/mdusch/crossvalidation/mb_crossval/jinja_templates'
     # --------------------------------------------------------------
     #
 
     # =============================================================
     # Run options
     #
-    if run_major_crossval:
-        run_major_crossvalidation(working_dir, storage_dir)
-
+  
     if run_minor_crossval:
         run_minor_crossvalidation(working_dir, storage_dir, region=region)
+
+    if run_major_crossval:
+        run_major_crossvalidation(working_dir, storage_dir, region=region)
 
     if make_minor_plots:
         file = os.path.join(storage_dir, 'xval_%s_minor.p' % oggmversion)

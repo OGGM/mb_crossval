@@ -1,6 +1,8 @@
 mbcrossval/__pycache__
 mbcrossval/.ropeproject
 mbcrossval/version.py
+mbcrossval/clusterconfig.cfg
+mbcrossval/meinecfg.cfg
 
 mbcrossval.egg-info/
 

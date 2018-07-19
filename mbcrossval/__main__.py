@@ -10,27 +10,45 @@ import datetime
 import numpy as np
 import pandas as pd
 import pickle
+import argparse
 
 # Local imports
-import oggm
 from oggm import cfg, utils
 from mbcrossval.crossvalidation import initialization_selection, preprocessing
 from mbcrossval.crossvalidation import calibration, minor_xval_statistics
 from mbcrossval.crossval_plots import crossval_timeseries, crossval_histogram
 from mbcrossval.crossval_plots import crossval_boxplot
 from mbcrossval.crossval_website import create_website
+from mbcrossval import mbcfg
 
 # Module logger
 log = logging.getLogger(__name__)
 
 
-def run_major_crossvalidation(working_dir, storage_dir, region=None,
-                              rgi_version='6'):
+def histalp():
+    # If HISTALP run, only region 11 is valid:
+    mbcfg.PARAMS['region'] == '11'
+    url = 'https://cluster.klima.uni-bremen.de/~mdusch/' + \
+          'histalp_merged_full_1850.nc.tar.gz'
+    histalptar = utils.file_downloader(url)
+
+    import tarfile
+    with tarfile.open(histalptar, "r") as tar:
+        tar.extractall(path=os.path.split(histalptar)[0])
+        mbcfg.PATHS['histalpfile'] = os.path.join(os.path.split(histalptar)[0],
+                                                  tar.getmembers()[0].name)
+    if not os.path.exists(mbcfg.PATHS['histalpfile']):
+        raise RuntimeError('Histalpfile not found')
+
+
+def run_major_crossvalidation():
     # Initialize OGGM and set up the run parameters
 
+    if mbcfg.PARAMS['histalp']:
+        histalp()
+
     # initialization, select region if wanted and return GDIRs
-    gdirs = initialization_selection(working_dir, region=region,
-                                     rgi_version=rgi_version)
+    gdirs = initialization_selection()
 
     # some preprocessing
     gdirs = preprocessing(gdirs)
@@ -42,14 +60,18 @@ def run_major_crossvalidation(working_dir, storage_dir, region=None,
                                      'std_quot', 'bias', 'rmse', 'core'])
 
     # define each parameter range
-    # could also be done from a config file
-    prcpsf = np.arange(1.5, 3.75, 0.25)
-    tliq = np.arange(1.0, 3.25, 0.25)
-    tmelt = np.arange(-2.0, -0.25, 0.25)
-    tgrad = np.arange(-0.0075, -0.00525, 0.001)
-
-    totalruns = prcpsf.size * tliq.size * tmelt.size * tgrad.size
-    runs = 0
+    prcpsf = np.arange(mbcfg.PARAMS['prcp1'],
+                       mbcfg.PARAMS['prcp2'] + mbcfg.PARAMS['prcp_step'],
+                       mbcfg.PARAMS['prcp_step'])
+    tliq = np.arange(mbcfg.PARAMS['tliq1'],
+                     mbcfg.PARAMS['tliq2'] + mbcfg.PARAMS['tliq_step'],
+                     mbcfg.PARAMS['tliq_step'])
+    tmelt = np.arange(mbcfg.PARAMS['tmel1'],
+                      mbcfg.PARAMS['tmel2'] + mbcfg.PARAMS['tmel_step'],
+                      mbcfg.PARAMS['tmel_step'])
+    tgrad = np.arange(mbcfg.PARAMS['tgra1'],
+                      mbcfg.PARAMS['tgra2'] + mbcfg.PARAMS['tgra_step'],
+                      mbcfg.PARAMS['tgra_step'])
 
     # loop over all
     for PR in prcpsf:
@@ -65,28 +87,24 @@ def run_major_crossvalidation(working_dir, storage_dir, region=None,
                     log.info('prcpSF={}, Tliq={}, Tmelt={}, Tgrad={}'.format(
                         PR, TL, TM, TG))
                     xval = calibration(gdirs, xval, major=1)
-                    """
-                    if runs % np.round(totalruns/100) == 0:
-                        log.info('%3d percent of total runs' %
-                                 runs/np.round(totalruns/100))
-                    runs += 1
-                    """
 
     outdict = {'statistic': xval,
                'date_created': datetime.datetime.now().strftime('%Y-%m-%d'),
-               'oggmversion': oggm.__version__}
+               'oggmversion': mbcfg.PARAMS['oggmversion']}
 
-    pout = os.path.join(storage_dir, 'xval_%s_major.p' % oggm.__version__)
+    pout = os.path.join(mbcfg.PATHS['storage_dir'],
+                        'xval_%s_major.p' % mbcfg.PARAMS['oggmversion'])
     pickle.dump(outdict, open(pout, 'wb'))
 
 
-def run_minor_crossvalidation(working_dir, storage_dir, region=None,
-                              rgi_version='6'):
+def run_minor_crossvalidation():
     # Initialize OGGM and set up the run parameters
 
+    if mbcfg.PARAMS['histalp']:
+        histalp()
+
     # initialization, select region if wanted and return GDIRs
-    gdirs = initialization_selection(working_dir, region=region,
-                                     rgi_version=rgi_version)
+    gdirs = initialization_selection()
 
     # some preprocessing
     gdirs = preprocessing(gdirs)
@@ -105,85 +123,48 @@ def run_minor_crossvalidation(working_dir, storage_dir, region=None,
                'per_glacier': xval_perglacier,
                'massbalance': mb_perglacier,
                'date_created': datetime.datetime.now().strftime('%Y-%m-%d'),
-               'oggmversion': oggm.__version__}
+               'oggmversion': mbcfg.PARAMS['oggmversion']}
 
-    pout = os.path.join(storage_dir, 'xval_%s_minor.p' % oggm.__version__)
+    pout = os.path.join(mbcfg.PATHS['storage_dir'],
+                        'xval_%s_minor.p' % mbcfg.PARAMS['oggmversion'])
     pickle.dump(outdict, open(pout, 'wb'))
 
 
 if __name__ == '__main__':
 
     # --------------------------------------------------------------
-    # Configuration parameters:
-    #   Later either pass them as parameters or as config-File
+    # Arguments:
     #
-    # Limit crossvalidation to a single RGI region. Either for reduced runtime.
-    #   Or due to regional climate data (e.g. HISTALP)
-    #   Alps = '11', All reference glaciers = None
-    region = None
-    #
-    # RGI Version
-    rgi_version = '6'
-    #
-    # Which OGGM version
-    oggmversion = oggm.__version__
-    #
-    # OGGM working directory
-    working_dir = os.environ['WORKDIR']
-    utils.mkdir(working_dir)
-    #
-    # Storage directory
-    storage_dir = '/home/users/mdusch/crossvalidation/storage'
-    utils.mkdir(storage_dir)
-    #
-    # Website root directory
-    webroot = '/home/www/mdusch/ci'
-    utils.mkdir(webroot)
-    #
-    # Plotdir
-    plotdir = os.path.join(webroot, oggmversion, 'plots')
-    utils.mkdir(plotdir)
-    #
-    # Decide which tasks to run:
-    #
-    # run_major_crossvalidataion runs the crossvalidation for a parameter range
-    #   this is time consuming and should only be done for major OGGM updates
-    run_major_crossval = 0
-    #
-    # run_minor_crossvalidataion runs the crossvalidation with the
-    #   standard parameter. Only necessary if major_crossval is not run.
-    run_minor_crossval = 0
-    #
-    # decide if crossvalidation plots are made or not
-    make_minor_plots = 1
-    make_major_plots = 1
-    #
-    # decide if a website will be created from the results
-    make_website = 1
-    #
-    # directory where jinja is stored
-    jinjadir = '/home/users/mdusch/crossvalidation/mb_crossval/jinja_templates'
-    # --------------------------------------------------------------
-    #
+    parser = argparse.ArgumentParser()
+    parser.add_argument('config',
+                        type=str,
+                        help='Paths/name of configuration file')
+
+    args = parser.parse_args()
+
+    # run configuration file
+    mbcfg.initialize(args.config)
 
     # =============================================================
     # Run options
     #
   
-    if run_minor_crossval:
-        run_minor_crossvalidation(working_dir, storage_dir, region=region)
+    if mbcfg.PARAMS['run_minor_crossval']:
+        run_minor_crossvalidation()
 
-    if run_major_crossval:
-        run_major_crossvalidation(working_dir, storage_dir, region=region)
+    if mbcfg.PARAMS['run_major_crossval']:
+        run_major_crossvalidation()
 
-    if make_minor_plots:
-        file = os.path.join(storage_dir, 'xval_%s_minor.p' % oggmversion)
-        crossval_timeseries(file, plotdir)
-        crossval_histogram(file, plotdir)
+    if mbcfg.PARAMS['make_minor_plots']:
+        file = os.path.join(mbcfg.PATHS['storage_dir'],
+                            'xval_%s_minor.p' % mbcfg.PARAMS['oggmversion'])
+        crossval_timeseries(file)
+        crossval_histogram(file)
 
-    if make_major_plots:
-        file = os.path.join(storage_dir, 'xval_%s_major.p' % oggmversion)
-        crossval_boxplot(file, plotdir)
+    if mbcfg.PARAMS['make_major_plots']:
+        file = os.path.join(mbcfg.PATHS['storage_dir'],
+                            'xval_%s_major.p' % mbcfg.PARAMS['oggmversion'])
+        crossval_boxplot(file)
 
-    if make_website:
-        create_website(webroot, jinjadir, storage_dir)
+    if mbcfg.PARAMS['make_website']:
+        create_website()

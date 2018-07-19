@@ -13,44 +13,48 @@ import numpy as np
 
 # Local imports
 from oggm import utils
-
 from mbcrossval.crossval_plots import crossval_timeseries, crossval_histogram
+from mbcrossval import mbcfg
 
 
-def create_website(webroot, jinjadir, storage_dir):
+def create_website():
 
     # setup jinja
-    file_loader = FileSystemLoader(jinjadir)
+    file_loader = FileSystemLoader(mbcfg.PATHS['jinjadir'])
     env = Environment(loader=file_loader)
 
     # different versions
     vdf = pd.DataFrame([], columns=['version', 'min_maj', 'file',
                                     'wd', 'pd'])
 
-    for x in os.listdir(storage_dir):
+    for x in os.listdir(mbcfg.PATHS['storage_dir']):
         parts = x.split('_')
         if (parts[0] == 'xval') and (parts[2] == 'minor.p'):
 
             # make webdir
-            webdir = os.path.join(webroot, parts[1], 'web')
+            webdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'web')
             shutil.rmtree(webdir, ignore_errors=True)
             utils.mkdir(webdir)
 
             # check if plots do exist
-            pltdir = os.path.join(webroot, parts[1], 'plots')
+            pltdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'plots')
+            mbcfg.PATHS['plotdir'] = pltdir
 
             if (not os.path.isdir(pltdir)) or (len(os.listdir(pltdir)) == 0):
                 utils.mkdir(pltdir)
                 # try to make plots
-                crossval_timeseries(os.path.join(storage_dir, x), pltdir)
-                crossval_histogram(os.path.join(storage_dir, x), pltdir)
+                crossval_timeseries(os.path.join(mbcfg.PATHS['storage_dir'],
+                                                 x))
+                crossval_histogram(os.path.join(mbcfg.PATHS['storage_dir'], x))
 
             vdf = vdf.append({'version': parts[1],
                               'min_maj': parts[2].split('.')[0],
-                              'file': os.path.join(storage_dir, x),
+                              'file': os.path.join(mbcfg.PATHS['storage_dir'],
+                                                   x),
                               'wd': webdir,
-                              'verdir': os.path.join(webroot, parts[1]),
-                              'pd': pltdir},
+                              'verdir': os.path.join(mbcfg.PATHS['webroot'],
+                                                     parts[1]),
+                              'pd': mbcfg.PATHS['plotdir']},
                              ignore_index=True)
 
     vdf = vdf.sort_values(by='version')
@@ -68,7 +72,7 @@ def create_website(webroot, jinjadir, storage_dir):
         df = pd.concat([df.loc[df.Name != ''], df.loc[df.Name == '']])
         # concatenate the overview to the beginning
         df = pd.concat([pd.DataFrame([{'Name': '',
-                                       'RGIId' : 'Overview',
+                                       'RGIId': 'Overview',
                                        'xval_bias': df.xval_bias.mean(),
                                        'tstar_bias': df.tstar_bias.mean()}]),
                         df],
@@ -81,9 +85,8 @@ def create_website(webroot, jinjadir, storage_dir):
         #
         # LINKNAMEs
         df['linkname'] = df.RGIId
-        df.loc[df.Name != '', 'linkname'] = df.loc[df.Name != '',
-                                                   'linkname'] + ', ' + \
-                                            df.loc[df.Name != '', 'Name']
+        df.loc[df.Name != '', 'linkname'] = df.loc[df.Name != '', 'linkname']\
+            + ', ' + df.loc[df.Name != '', 'Name']
 
         #
         # LINKLIST for GLACIERS
@@ -91,7 +94,8 @@ def create_website(webroot, jinjadir, storage_dir):
         df.loc['Overview', 'link'] = '../index.html'
         template = env.get_template('createlinklist.txt')
         linklist = template.render(glaciers=df.to_dict(orient='records'))
-        with open(os.path.join(jinjadir, 'linklist.html'), 'w') as fl:
+        with open(os.path.join(mbcfg.PATHS['jinjadir'], 'linklist.html'),
+                  'w') as fl:
             fl.write(linklist)
 
         #
@@ -99,7 +103,8 @@ def create_website(webroot, jinjadir, storage_dir):
         df['link'] = 'web/' + df.RGIId + '.html'
         df.loc['Overview', 'link'] = 'index.html'
         linklist = template.render(glaciers=df.to_dict(orient='records'))
-        with open(os.path.join(jinjadir, 'linklistindex.html'), 'w') as fl:
+        with open(os.path.join(mbcfg.PATHS['jinjadir'], 'linklistindex.html'),
+                  'w') as fl:
             fl.write(linklist)
 
         #
@@ -147,8 +152,10 @@ def create_website(webroot, jinjadir, storage_dir):
             if (vers == vdf.iloc[0]).all() & (len(vdf) > 1):
                 # first version, no previous
                 previous = ''
-                nxtlink = os.path.join(linksuffix, vdf.iloc[nr+1]['version'], glc['link'])
-                nxtfile = os.path.join(webroot, vdf.iloc[nr+1]['version'], glc['link'])
+                nxtlink = os.path.join(linksuffix, vdf.iloc[nr+1]['version'],
+                                       glc['link'])
+                nxtfile = os.path.join(mbcfg.PATHS['webroot'],
+                                       vdf.iloc[nr+1]['version'], glc['link'])
 
                 next = '<a href="%s" class="next">%s &raquo;</a>' %\
                        (nxtlink, vdf.iloc[nr+1]['version'])
@@ -160,8 +167,10 @@ def create_website(webroot, jinjadir, storage_dir):
             elif (vers == vdf.iloc[-1]).all() & (len(vdf) > 1):
                 # last version, no next
                 next = ''
-                prvlink = os.path.join(linksuffix, vdf.iloc[nr-1]['version'], glc['link'])
-                prvfile = os.path.join(webroot, vdf.iloc[nr-1]['version'], glc['link'])
+                prvlink = os.path.join(linksuffix, vdf.iloc[nr-1]['version'],
+                                       glc['link'])
+                prvfile = os.path.join(mbcfg.PATHS['webroot'],
+                                       vdf.iloc[nr-1]['version'], glc['link'])
 
                 previous = '<a href="%s" class="previous">&laquo; %s</a>' % \
                            (prvlink, vdf.iloc[nr-1]['version'])
@@ -174,10 +183,14 @@ def create_website(webroot, jinjadir, storage_dir):
                 next = ''
                 previous = ''
             else:
-                nxtlink = os.path.join(linksuffix, vdf.iloc[nr+1]['version'], glc['link'])
-                nxtfile = os.path.join(webroot, vdf.iloc[nr+1]['version'], glc['link'])
-                prvlink = os.path.join(linksuffix, vdf.iloc[nr-1]['version'], glc['link'])
-                prvfile = os.path.join(webroot, vdf.iloc[nr-1]['version'], glc['link'])
+                nxtlink = os.path.join(linksuffix, vdf.iloc[nr+1]['version'],
+                                       glc['link'])
+                nxtfile = os.path.join(mbcfg.PATHS['webroot'],
+                                       vdf.iloc[nr+1]['version'], glc['link'])
+                prvlink = os.path.join(linksuffix, vdf.iloc[nr-1]['version'],
+                                       glc['link'])
+                prvfile = os.path.join(mbcfg.PATHS['webroot'],
+                                       vdf.iloc[nr-1]['version'], glc['link'])
 
                 previous = '<a href="%s" class="previous">&laquo; %s</a>' % \
                            (prvlink, vdf.iloc[nr-1]['version'])
@@ -210,7 +223,7 @@ def create_website(webroot, jinjadir, storage_dir):
         if (vers == vdf.iloc[-1]).all():
             template = env.get_template('latestindex.html')
             latest = template.render(version=vers.version)
-            latestfile = os.path.join(webroot, 'index.html')
+            latestfile = os.path.join(mbcfg.PATHS['webroot'], 'index.html')
 
             with open(latestfile, 'w') as fl:
                 fl.write(latest)

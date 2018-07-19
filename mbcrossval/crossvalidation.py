@@ -16,6 +16,8 @@ from oggm import cfg, utils, tasks, workflow
 from oggm.workflow import execute_entity_task
 from oggm.core.massbalance import PastMassBalance
 
+from mbcrossval import mbcfg
+
 # Module logger
 log = logging.getLogger(__name__)
 
@@ -39,9 +41,14 @@ def preprocessing(gdirs):
 
 def calibration(gdirs, xval, major=0):
     # Climate tasks
-    # do once per parameter set
-    with utils.DisableLogger():
+
+    if mbcfg.PARAMS['histalp']:
+        cfg.PATHS['climate_file'] = mbcfg.PATHS['histalpfile']
+        execute_entity_task(tasks.process_custom_climate_data, gdirs)
+    else:
         execute_entity_task(tasks.process_cru_data, gdirs)
+
+    with utils.DisableLogger():
         tasks.compute_ref_t_stars(gdirs)
         tasks.distribute_t_stars(gdirs)
         execute_entity_task(tasks.apparent_mb, gdirs)
@@ -179,17 +186,16 @@ def quick_crossval(gdirs, xval, major=0):
         return xval
 
 
-def initialization_selection(working_dir, region=None, rgi_version='6'):
+def initialization_selection():
     # -------------
     # Initialization
     # -------------
     cfg.initialize()
 
     # working directories
-    utils.mkdir(working_dir)
-    cfg.PATHS['working_dir'] = working_dir
+    cfg.PATHS['working_dir'] = mbcfg.PATHS['working_dir']
 
-    cfg.PATHS['rgi_version'] = rgi_version
+    cfg.PATHS['rgi_version'] = mbcfg.PARAMS['rgi_version']
 
     # We are running the calibration ourselves
     cfg.PARAMS['run_mb_calibration'] = True
@@ -221,7 +227,8 @@ def initialization_selection(working_dir, region=None, rgi_version='6'):
     for reg in df['RGI_REG'].unique():
         if reg == '19':
             continue  # we have no climate data in Antarctica
-        if region is not None and reg != region:
+        if mbcfg.PARAMS['region'] is not None\
+                and reg != mbcfg.PARAMS['region']:
             continue
 
         fn = '*' + reg + '_rgi{}0_*.shp'.format(cfg.PATHS['rgi_version'])
@@ -231,11 +238,24 @@ def initialization_selection(working_dir, region=None, rgi_version='6'):
     rgidf = pd.concat(rgidf)
     rgidf.crs = sh.crs  # for geolocalisation
 
+    # reduce Europe to Histalp area (exclude Pyrenees, etc...)
+    if mbcfg.PARAMS['histalp']:
+        rgidf = rgidf.loc[(rgidf.CenLon >= 4) &
+                          (rgidf.CenLon < 20) &
+                          (rgidf.CenLat >= 43) &
+                          (rgidf.CenLat < 47)]
+
     # We have to check which of them actually have enough mb data.
     # Let OGGM do it:
     gdirs = workflow.init_glacier_regions(rgidf)
     # We need to know which period we have data for
-    execute_entity_task(tasks.process_cru_data, gdirs, print_log=False)
+
+    if mbcfg.PARAMS['histalp']:
+        cfg.PATHS['climate_file'] = mbcfg.PATHS['histalpfile']
+        execute_entity_task(tasks.process_custom_climate_data, gdirs)
+    else:
+        execute_entity_task(tasks.process_cru_data, gdirs, print_log=False)
+
     gdirs = utils.get_ref_mb_glaciers(gdirs)
     # Keep only these
     rgidf = rgidf.loc[rgidf.RGIId.isin([g.rgi_id for g in gdirs])]
@@ -248,7 +268,7 @@ def initialization_selection(working_dir, region=None, rgi_version='6'):
     rgidf = rgidf.sort_values('Area', ascending=False)
 
     # Go - initialize working directories
-    gdirs = workflow.init_glacier_regions(rgidf)
+    gdirs = workflow.init_glacier_regions(rgidf, reset=True, force=True)
 
     return gdirs
 

@@ -9,8 +9,10 @@ import numpy as np
 import pandas as pd
 import pickle
 
+from mbcrossval import mbcfg
 
-def crossval_boxplot(file, pltdir):
+
+def crossval_boxplot(file):
     # load pickle file
     xvaldict = pickle.load(open(file, 'rb'))
     xval = xvaldict['statistic']
@@ -91,13 +93,14 @@ def crossval_boxplot(file, pltdir):
         f.suptitle('Crossvalidation results with respect to %s' % title[var])
 
         # f.tight_layout()
-        plotname = os.path.join(pltdir, '%s_crossval_box.png' % var)
+        plotname = os.path.join(mbcfg.PATHS['plotdir'],
+                                '%s_crossval_box.png' % var)
         f.savefig(plotname, format='png')
 
     plt.show()
 
 
-def crossval_timeseries(file, pltdir):
+def crossval_timeseries(file):
     # load pickle file
     xvaldict = pickle.load(open(file, 'rb'))
     data = xvaldict['massbalance']
@@ -131,12 +134,12 @@ def crossval_timeseries(file, pltdir):
 
         ax1.grid(True)
         f.tight_layout()
-        plotname = os.path.join(pltdir, '%s.png' % gd)
+        plotname = os.path.join(mbcfg.PATHS['plotdir'], '%s.png' % gd)
         f.savefig(plotname, format='png')
         plt.close(f)
 
 
-def crossval_histogram(file, pltdir):
+def crossval_histogram(file):
     # histogramplot of the crossvalidation. compare Marzeion 2012, Figure 3
     # load pickle file
     xvaldict = pickle.load(open(file, 'rb'))
@@ -146,7 +149,7 @@ def crossval_histogram(file, pltdir):
     f, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
     bins = np.arange(20) * 400 - 3800
     data['xval_bias'].plot(ax=ax1, kind='hist', bins=bins,
-                            color='C3', label='')
+                           color='C3', label='')
     ax1.vlines(data['xval_bias'].mean(), 0, 120,
                linestyles='--', label='Mean')
     ax1.vlines(data['xval_bias'].quantile(), 0, 120, label='Median')
@@ -170,6 +173,6 @@ def crossval_histogram(file, pltdir):
                color='grey')
     ax2.set_xlabel('Mass-balance error (mm w.e. yr$^{-1}$)')
     ax2.set_title('Interpolated mu_star')
-    plotname = os.path.join(pltdir, 'mb_histogram.png')
+    plotname = os.path.join(mbcfg.PATHS['plotdir'], 'mb_histogram.png')
     plt.tight_layout()
     plt.savefig(plotname, format='png')

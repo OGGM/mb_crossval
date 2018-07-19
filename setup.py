@@ -15,7 +15,7 @@ VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 QUALIFIER = ''
 
 DISTNAME = 'mbcrossval'
-LICENSE = 'MIT'
+LICENSE = 'GPLv3+'
 AUTHOR = 'OGGM developers'
 AUTHOR_EMAIL = 'matthias.dusch@uibk.ac.at'
 URL = 'https://github.com/oggm/mb_crossval'
@@ -25,7 +25,8 @@ CLASSIFIERS = [
         'Development Status :: 3 - Alpha',
         # Indicate who your project is intended for
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License' +
+        ('License :: OSI Approved :: GNU General Public License '
+         'v3 or later (GPLv3+)'),
         'Programming Language :: Python :: 3.5',
     ]
 

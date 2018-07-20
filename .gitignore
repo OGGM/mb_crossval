@@ -8,3 +8,5 @@ mbcrossval.egg-info/
 
 jinja_templates/linklist.html
 jinja_templates/linklistindex.html
+
+.idea

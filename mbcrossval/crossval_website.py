@@ -14,6 +14,7 @@ import numpy as np
 # Local imports
 from oggm import utils
 from mbcrossval.crossval_plots import crossval_timeseries, crossval_histogram
+from mbcrossval.crossval_plots import crossval_boxplot
 from mbcrossval import mbcfg
 
 
@@ -40,7 +41,7 @@ def create_website():
             pltdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'plots')
             mbcfg.PATHS['plotdir'] = pltdir
 
-            if (not os.path.isdir(pltdir)) or (len(os.listdir(pltdir)) == 0):
+            if mbcfg.PARAMS['redo_all_plots']:
                 utils.mkdir(pltdir)
                 # try to make plots
                 crossval_timeseries(os.path.join(mbcfg.PATHS['storage_dir'],
@@ -56,6 +57,13 @@ def create_website():
                                                      parts[1]),
                               'pd': mbcfg.PATHS['plotdir']},
                              ignore_index=True)
+        elif (parts[0] == 'xval') and (mbcfg.PARAMS['redo_all_plots']) and\
+                (parts[2] == 'major.p'):
+            pltdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'plots')
+            mbcfg.PATHS['plotdir'] = pltdir
+
+            utils.mkdir(pltdir)
+            crossval_boxplot(os.path.join(mbcfg.PATHS['storage_dir'], x))
 
     vdf = vdf.sort_values(by='version')
     vdf.index = np.arange(len(vdf))

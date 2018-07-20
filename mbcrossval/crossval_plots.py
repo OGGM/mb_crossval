@@ -48,17 +48,18 @@ def crossval_boxplot(file):
 
         # RMSE
         xval.boxplot(column='rmse', by=var, ax=ax0, grid=False,
-                     positions=base[var], widths=0.2)
+                     positions=base[var], widths=0.2, showfliers=False)
         base.plot(x=var, y='rmse', kind='scatter', ax=ax0, color='r',
                   linewidth=3, )
         ax0.set_ylabel('mean rmse')
         ax0.set_xlabel('')
         ax0.set_title('')
         ax0.set_ylim((200, 800))
+        ax0.plot((allvar[var], allvar[var]), ax0.get_ylim(), 'k-', linewidth=1)
 
         # BIAS
         xval.boxplot(column='bias', by=var, ax=ax1, grid=False,
-                     positions=base[var], widths=0.2)
+                     positions=base[var], widths=0.2, showfliers=False)
         base.plot(x=var, y='bias', kind='scatter', ax=ax1, color='r',
                   linewidth=3)
         ax1.plot(ax1.get_xlim(), (0.0, 0.0), 'k-', linewidth=1)
@@ -66,10 +67,11 @@ def crossval_boxplot(file):
         ax1.set_xlabel('')
         ax1.set_title('')
         ax1.set_ylim((-400, 100))
+        ax1.plot((allvar[var], allvar[var]), ax1.get_ylim(), 'k-', linewidth=1)
 
         # STD quotient
         xval.boxplot(column='std_quot', by=var, ax=ax2, grid=False,
-                     positions=base[var], widths=0.2)
+                     positions=base[var], widths=0.2, showfliers=False)
         base.plot(x=var, y='std_quot', kind='scatter', ax=ax2, color='r',
                   linewidth=3)
         ax2.plot(ax2.get_xlim(), (1.0, 1.0), 'k-', linewidth=1)
@@ -77,16 +79,18 @@ def crossval_boxplot(file):
         ax2.set_ylabel('mean std quotient')
         ax2.set_title('')
         ax2.set_ylim((0, 3))
+        ax2.plot((allvar[var], allvar[var]), ax2.get_ylim(), 'k-', linewidth=1)
 
         # CORE
         xval.boxplot(column='core', by=var, ax=ax3, grid=False,
-                     positions=base[var], widths=0.2)
+                     positions=base[var], widths=0.2, showfliers=False)
         base.plot(x=var, y='core', kind='scatter', ax=ax3, color='r',
                   linewidth=3)
         ax3.set_xlabel(labels[var])
         ax3.set_ylabel('mean corelation')
         ax3.set_title('')
         ax3.set_ylim((0.55, 0.65))
+        ax3.plot((allvar[var], allvar[var]), ax3.get_ylim(), 'k-', linewidth=1)
 
         # figure stuff
 

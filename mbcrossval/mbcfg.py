@@ -41,7 +41,7 @@ def initialize(cfgfile):
 
     # which RGI region to process
     PARAMS['region'] = cp['region']
-    if PARAMS['region'] = 'None':
+    if PARAMS['region'] == 'None':
         PARAMS['region'] = None
 
     # which climate file to use
@@ -114,7 +114,7 @@ def substitute_env(filename):
         """
         key = match.group(2)
         if key not in os.environ:
-            raise Exception(f"Config env var '{key}' not set")  # or ignore
+            raise Exception("Config env var not set")  # or ignore
         return os.environ.get(key)
 
     pattern = re.compile(r'(\$(\w+))')

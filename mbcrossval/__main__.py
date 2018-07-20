@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 
 def histalp():
     # If HISTALP run, only region 11 is valid:
-    mbcfg.PARAMS['region'] == '11'
+    mbcfg.PARAMS['region'] = '11'
     url = 'https://cluster.klima.uni-bremen.de/~mdusch/' + \
           'histalp_merged_full_1850.nc.tar.gz'
     histalptar = utils.file_downloader(url)
@@ -161,10 +161,10 @@ if __name__ == '__main__':
         crossval_timeseries(file)
         crossval_histogram(file)
 
-    if mbcfg.PARAMS['make_major_plots']:
-        file = os.path.join(mbcfg.PATHS['storage_dir'],
-                            'xval_%s_major.p' % mbcfg.PARAMS['oggmversion'])
-        crossval_boxplot(file)
+    # if mbcfg.PARAMS['make_major_plots']:
+    #    file = os.path.join(mbcfg.PATHS['storage_dir'],
+    #                        'xval_%s_major.p' % mbcfg.PARAMS['oggmversion'])
+    #    crossval_boxplot(file)
 
     if mbcfg.PARAMS['make_website']:
         create_website()

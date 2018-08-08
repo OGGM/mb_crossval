@@ -148,7 +148,7 @@ if __name__ == '__main__':
     # =============================================================
     # Run options
     #
-  
+
     if mbcfg.PARAMS['run_minor_crossval']:
         run_minor_crossvalidation()
 
@@ -161,10 +161,10 @@ if __name__ == '__main__':
         crossval_timeseries(file)
         crossval_histogram(file)
 
-    # if mbcfg.PARAMS['make_major_plots']:
-    #    file = os.path.join(mbcfg.PATHS['storage_dir'],
-    #                        'xval_%s_major.p' % mbcfg.PARAMS['oggmversion'])
-    #    crossval_boxplot(file)
+    if mbcfg.PARAMS['make_major_plots']:
+        file = os.path.join(mbcfg.PATHS['storage_dir'],
+                            'xval_%s_major.p' % mbcfg.PARAMS['oggmversion'])
+        crossval_boxplot(file)
 
     if mbcfg.PARAMS['make_website']:
         create_website()

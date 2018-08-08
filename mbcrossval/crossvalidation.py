@@ -36,21 +36,22 @@ def preprocessing(gdirs):
     for task in task_list:
         execute_entity_task(task, gdirs)
 
-    return gdirs
-
-
-def calibration(gdirs, xval, major=0):
     # Climate tasks
-
     if mbcfg.PARAMS['histalp']:
         cfg.PATHS['climate_file'] = mbcfg.PATHS['histalpfile']
         execute_entity_task(tasks.process_custom_climate_data, gdirs)
     else:
         execute_entity_task(tasks.process_cru_data, gdirs)
 
+    return gdirs
+
+
+def calibration(gdirs, xval, major=0):
+
+    # once for reference t_stars
     with utils.DisableLogger():
         tasks.compute_ref_t_stars(gdirs)
-        tasks.distribute_t_stars(gdirs)
+        execute_entity_task(tasks.local_mustar, gdirs)
         execute_entity_task(tasks.apparent_mb, gdirs)
 
     # do the crossvalidation
@@ -102,7 +103,7 @@ def quick_crossval(gdirs, xval, major=0):
             # reference glaciers do have more than one possible t_star.
             #
             # tasks.compute_ref_t_stars(ref_gdirs)
-            tasks.distribute_t_stars([gdir], ref_df=tmp_ref_df)
+            tasks.local_mustar(gdir, ref_df=tmp_ref_df)
 
         # read crossvalidated values
         rdf = pd.read_csv(gdir.get_filepath('local_mustar'))
@@ -113,7 +114,7 @@ def quick_crossval(gdirs, xval, major=0):
         mb_mod = PastMassBalance(gdir,
                                  mu_star=rdf['mu_star'].values[0],
                                  bias=rdf['bias'].values[0],
-                                 prcp_fac=rdf['prcp_fac'].values[0])
+                                 )
 
         # Mass-blaance timeseries, observed and simulated
         refmb = gdir.get_ref_mb_data().copy()
@@ -144,7 +145,8 @@ def quick_crossval(gdirs, xval, major=0):
             full_ref_df.loc[rid, 'cv_tstar'] = int(rdf['t_star'].values[0])
             full_ref_df.loc[rid, 'cv_mustar'] = rdf['mu_star'].values[0]
             full_ref_df.loc[rid, 'cv_bias'] = rdf['bias'].values[0]
-            full_ref_df.loc[rid, 'cv_prcp_fac'] = rdf['prcp_fac'].values[0]
+            full_ref_df.loc[rid, 'cv_prcp_fac'] =\
+                cfg.PARAMS['prcp_scaling_factor']
 
     # and store mean values
     std_quot = np.mean(tmpdf.std_oggm/tmpdf.std_ref)
@@ -245,6 +247,13 @@ def initialization_selection():
                           (rgidf.CenLat >= 43) &
                           (rgidf.CenLat < 47)]
 
+        # and set standard histalp values
+        cfg.PARAMS['prcp_scaling_factor'] = 1.75
+        cfg.PARAMS['temp_all_liq'] = 2.0
+        cfg.PARAMS['temp_melt'] = -1.75
+        cfg.PARAMS['temp_default_gradient'] = -0.0065
+
+
     # We have to check which of them actually have enough mb data.
     # Let OGGM do it:
     gdirs = workflow.init_glacier_regions(rgidf)
@@ -305,7 +314,7 @@ def minor_xval_statistics(gdirs):
         # Mass-balance model with cross-validated parameters instead
         mb_mod = PastMassBalance(gd, mu_star=t_cvdf.cv_mustar,
                                  bias=t_cvdf.cv_bias,
-                                 prcp_fac=t_cvdf.cv_prcp_fac)
+                                 )
         refmb['OGGM_cv'] = mb_mod.get_specific_mb(heights, widths,
                                                   year=refmb.index)
         # Compare their standard deviation
@@ -325,7 +334,7 @@ def minor_xval_statistics(gdirs):
         # Mass-balance model with interpolated mu_star
         mb_mod = PastMassBalance(gd, mu_star=t_cvdf.interp_mustar,
                                  bias=t_cvdf.cv_bias,
-                                 prcp_fac=t_cvdf.cv_prcp_fac)
+                                 )
         refmb['OGGM_mu_interp'] = mb_mod.get_specific_mb(heights, widths,
                                                          year=refmb.index)
         cvdf.loc[gd.rgi_id, 'INTERP_MB_BIAS'] = (refmb.OGGM_mu_interp.mean() -
@@ -334,7 +343,7 @@ def minor_xval_statistics(gdirs):
         # Mass-balance model with best guess tstar
         mb_mod = PastMassBalance(gd, mu_star=t_cvdf.mustar,
                                  bias=t_cvdf.bias,
-                                 prcp_fac=t_cvdf.prcp_fac)
+                                 )
         refmb['OGGM_tstar'] = mb_mod.get_specific_mb(heights, widths,
                                                      year=refmb.index)
         cvdf.loc[gd.rgi_id, 'tstar_MB_BIAS'] = (refmb.OGGM_tstar.mean() -

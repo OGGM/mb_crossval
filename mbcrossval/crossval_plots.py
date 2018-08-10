@@ -32,7 +32,10 @@ def crossval_boxplot(file):
              'tmelt': 'Melt temperature',
              'tgrad': 'Temperature laps rate'}
 
-    allvar = {'prcpsf': 2.5, 'tliq': 2.0, 'tmelt': -1.0, 'tgrad': -6.5}
+    if mbcfg.PARAMS['histalp']:
+        allvar = {'prcpsf': 1.75, 'tliq': 2.0, 'tmelt': -1.75, 'tgrad': -6.5}
+    else:
+        allvar = {'prcpsf': 2.5, 'tliq': 2.0, 'tmelt': -1.0, 'tgrad': -6.5}
 
     for var in allvar.keys():
         f, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2, figsize=(13, 7))

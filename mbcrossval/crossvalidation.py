@@ -38,8 +38,7 @@ def preprocessing(gdirs):
 
     # Climate tasks
     if mbcfg.PARAMS['histalp']:
-        cfg.PATHS['climate_file'] = mbcfg.PATHS['histalpfile']
-        execute_entity_task(tasks.process_custom_climate_data, gdirs)
+        execute_entity_task(tasks.process_histalp_data, gdirs)
     else:
         execute_entity_task(tasks.process_cru_data, gdirs)
 
@@ -260,8 +259,8 @@ def initialization_selection():
     # We need to know which period we have data for
 
     if mbcfg.PARAMS['histalp']:
-        cfg.PATHS['climate_file'] = mbcfg.PATHS['histalpfile']
-        execute_entity_task(tasks.process_custom_climate_data, gdirs)
+        cfg.PARAMS['baseline_climate'] = 'HISTALP'
+        execute_entity_task(tasks.process_histalp_data, gdirs)
     else:
         execute_entity_task(tasks.process_cru_data, gdirs, print_log=False)
 

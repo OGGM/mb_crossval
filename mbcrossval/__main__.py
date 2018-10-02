@@ -25,27 +25,11 @@ from mbcrossval import mbcfg
 log = logging.getLogger(__name__)
 
 
-def histalp():
-    # If HISTALP run, only region 11 is valid:
-    mbcfg.PARAMS['region'] = '11'
-    url = 'https://cluster.klima.uni-bremen.de/~mdusch/' + \
-          'histalp_merged_full_1850.nc.tar.gz'
-    histalptar = utils.file_downloader(url)
-
-    import tarfile
-    with tarfile.open(histalptar, "r") as tar:
-        tar.extractall(path=os.path.split(histalptar)[0])
-        mbcfg.PATHS['histalpfile'] = os.path.join(os.path.split(histalptar)[0],
-                                                  tar.getmembers()[0].name)
-    if not os.path.exists(mbcfg.PATHS['histalpfile']):
-        raise RuntimeError('Histalpfile not found')
-
-
 def run_major_crossvalidation():
     # Initialize OGGM and set up the run parameters
 
     if mbcfg.PARAMS['histalp']:
-        histalp()
+        cfg.PARAMS['baseline_climate'] = 'HISTALP'
 
     # initialization, select region if wanted and return GDIRs
     gdirs = initialization_selection()
@@ -101,7 +85,7 @@ def run_minor_crossvalidation():
     # Initialize OGGM and set up the run parameters
 
     if mbcfg.PARAMS['histalp']:
-        histalp()
+        cfg.PARAMS['baseline_climate'] = 'HISTALP'
 
     # initialization, select region if wanted and return GDIRs
     gdirs = initialization_selection()

@@ -14,7 +14,8 @@ import geopandas as gpd
 # Local imports
 from oggm import cfg, utils, tasks, workflow
 from oggm.workflow import execute_entity_task
-from oggm.core.massbalance import PastMassBalance
+from oggm.core.massbalance import MultipleFlowlineMassBalance
+from oggm.core.climate import t_star_from_refmb
 
 from mbcrossval import mbcfg
 
@@ -50,8 +51,8 @@ def calibration(gdirs, xval, major=0):
     # once for reference t_stars
     with utils.DisableLogger():
         tasks.compute_ref_t_stars(gdirs)
-        execute_entity_task(tasks.local_mustar, gdirs)
-        execute_entity_task(tasks.apparent_mb, gdirs)
+        execute_entity_task(tasks.local_t_star, gdirs)
+        execute_entity_task(tasks.mu_star_calibration, gdirs)
 
     # do the crossvalidation
     xval = quick_crossval(gdirs, xval, major=major)
@@ -80,45 +81,33 @@ def quick_crossval(gdirs, xval, major=0):
         # the reference glaciers
         tmp_ref_df = full_ref_df.loc[full_ref_df.index != rid]
 
-        # select reference glacier directories
-        # Only necessary if tasks.compute_ref_t_stars is uncommented below
-        # ref_gdirs = [g for g in gdirs if g.rgi_id != rid]
-
         # before the cross-val store the info about "real" mustar
-        rdf = pd.read_csv(gdir.get_filepath('local_mustar'))
-        full_ref_df.loc[rid, 'mustar'] = rdf['mu_star'].values[0]
+        _rdf = pd.read_csv(gdir.get_filepath('local_mustar'))
 
-        # redistribute t_star
-        with utils.DisableLogger():
-            # compute_ref_t_stars should be done again for
-            # every crossvalidation step
-            # This will/might have an influence if one of the 10 surrounding
-            # glaciers of the current glacier has more than one t_star
-            # If so, the currently crossvalidated glacier was probably
-            # used to select one t_star for this surrounding glacier.
-            #
-            # But: compute_ref_t_stars is very time consuming. And the
-            # influence is probably very small. Also only 40 out of the 253
-            # reference glaciers do have more than one possible t_star.
-            #
-            # tasks.compute_ref_t_stars(ref_gdirs)
-            tasks.local_mustar(gdir, ref_df=tmp_ref_df)
+        for col in _rdf.columns:
+            if ('mu_star' in col) or ('flowline' in col):
+                full_ref_df.loc[rid, col] = _rdf[col].values[0]
+
+        # It's probably cleaner to call t_star_from_refmb here.
+        # But I don't think it will have a large influence.
+        t_star_from_refmb(gdir, glacierwide=True)
+        tasks.local_t_star(gdir, ref_df=tmp_ref_df)
+        tasks.mu_star_calibration(gdir)
 
         # read crossvalidated values
         rdf = pd.read_csv(gdir.get_filepath('local_mustar'))
+        """
+        muss ich mu_Star und bias uebergeben?? Eigentlich nicht, weil ich habe
+        diese ja gerade in mu_star_calibration fuer die flowlines gesetzt...?
+        """
 
         # ----
         # --- MASS-BALANCE MODEL
-        heights, widths = gdir.get_inversion_flowline_hw()
-        mb_mod = PastMassBalance(gdir,
-                                 mu_star=rdf['mu_star'].values[0],
-                                 bias=rdf['bias'].values[0],
-                                 )
+        mb_mod = MultipleFlowlineMassBalance(gdir)
 
-        # Mass-blaance timeseries, observed and simulated
+        # Mass-balance timeseries, observed and simulated
         refmb = gdir.get_ref_mb_data().copy()
-        refmb['OGGM'] = mb_mod.get_specific_mb(heights, widths,
-                                               year=refmb.index)
+        refmb['OGGM'] = mb_mod.get_specific_mb(year=refmb.index)
 
         # store single glacier results
         bias = refmb.OGGM.mean() - refmb.ANNUAL_BALANCE.mean()
@@ -142,10 +131,15 @@ def quick_crossval(gdirs, xval, major=0):
         if not major:
             # store cross validated values
             full_ref_df.loc[rid, 'cv_tstar'] = int(rdf['t_star'].values[0])
-            full_ref_df.loc[rid, 'cv_mustar'] = rdf['mu_star'].values[0]
+            full_ref_df.loc[rid, 'cv_mustar'] =\
+                rdf['mu_star_glacierwide'].values[0]
             full_ref_df.loc[rid, 'cv_bias'] = rdf['bias'].values[0]
             full_ref_df.loc[rid, 'cv_prcp_fac'] =\
                 cfg.PARAMS['prcp_scaling_factor']
+
+            for col in rdf.columns:
+                if ('mu_star' in col) or ('flowline' in col):
+                    full_ref_df.loc[rid, 'cv_' + col] = rdf[col].values[0]
 
     # and store mean values
     std_quot = np.mean(tmpdf.std_oggm/tmpdf.std_ref)
@@ -176,7 +170,8 @@ def quick_crossval(gdirs, xval, major=0):
             aso = np.argsort(distances)[0:9]
             amin = tmp_ref_df.iloc[aso]
             distances = distances[aso] ** 2
-            interp = np.average(amin.mustar, weights=1. / distances)
+            interp = np.average(amin.mu_star_glacierwide,
+                                weights=1. / distances)
             full_ref_df.loc[rid, 'interp_mustar'] = interp
         # write
         file = os.path.join(cfg.PATHS['working_dir'], 'crossval_tstars.csv')
@@ -213,6 +208,12 @@ def initialization_selection():
 
     # set negative flux filtering to false. should be standard soon
     cfg.PARAMS['filter_for_neg_flux'] = False
+
+    # correct negative fluxes with flowline mus
+    cfg.PARAMS['correct_for_neg_flux'] = True
+
+    # use glacierwiede mu_star in order to finde t_star: it's faster!
+    cfg.PARAMS['tstar_search_glacierwide'] = True
 
     # Pre-download other files which will be needed later
     _ = utils.get_cru_file(var='tmp')
@@ -251,7 +252,6 @@ def initialization_selection():
         cfg.PARAMS['temp_all_liq'] = 2.0
         cfg.PARAMS['temp_melt'] = -1.75
         cfg.PARAMS['temp_default_gradient'] = -0.0065
-
 
     # We have to check which of them actually have enough mb data.
     # Let OGGM do it:
@@ -305,17 +305,19 @@ def minor_xval_statistics(gdirs):
 
     for gd in gdirs:
         t_cvdf = cvdf.loc[gd.rgi_id]
-        heights, widths = gd.get_inversion_flowline_hw()
+        # heights, widths = gd.get_inversion_flowline_hw()
 
         # Observed mass-blance
         refmb = gd.get_ref_mb_data().copy()
 
         # Mass-balance model with cross-validated parameters instead
-        mb_mod = PastMassBalance(gd, mu_star=t_cvdf.cv_mustar,
-                                 bias=t_cvdf.cv_bias,
-                                 )
-        refmb['OGGM_cv'] = mb_mod.get_specific_mb(heights, widths,
-                                                  year=refmb.index)
+        # use the cross validated flowline mustars:
+        mustarlist = t_cvdf[[col for col in t_cvdf.index if
+                             'cv_mustar_flowline' in col]].dropna().tolist()
+        mb_mod = MultipleFlowlineMassBalance(gd, mu_star=mustarlist,
+                                             bias=t_cvdf.cv_bias,
+                                             )
+        refmb['OGGM_cv'] = mb_mod.get_specific_mb(year=refmb.index)
         # Compare their standard deviation
         std_ref = refmb.ANNUAL_BALANCE.std()
         rcor = np.corrcoef(refmb.OGGM_cv, refmb.ANNUAL_BALANCE)[0, 1]
@@ -331,20 +333,26 @@ def minor_xval_statistics(gdirs):
         cvdf.loc[gd.rgi_id, 'CV_MB_COR'] = rcor
 
         # Mass-balance model with interpolated mu_star
-        mb_mod = PastMassBalance(gd, mu_star=t_cvdf.interp_mustar,
-                                 bias=t_cvdf.cv_bias,
-                                 )
-        refmb['OGGM_mu_interp'] = mb_mod.get_specific_mb(heights, widths,
-                                                         year=refmb.index)
+        # TODO stimmt das hier mit dem mu_star und bias?
+        mb_mod = MultipleFlowlineMassBalance(gd,
+                                             mu_star=t_cvdf.interp_mustar,
+                                             bias=t_cvdf.cv_bias,
+                                             )
+        refmb['OGGM_mu_interp'] = mb_mod.get_specific_mb(year=refmb.index)
         cvdf.loc[gd.rgi_id, 'INTERP_MB_BIAS'] = (refmb.OGGM_mu_interp.mean() -
                                                  refmb.ANNUAL_BALANCE.mean())
 
         # Mass-balance model with best guess tstar
-        mb_mod = PastMassBalance(gd, mu_star=t_cvdf.mustar,
-                                 bias=t_cvdf.bias,
-                                 )
-        refmb['OGGM_tstar'] = mb_mod.get_specific_mb(heights, widths,
-                                                     year=refmb.index)
+        # TODO stimmt das hier mit dem mu_star und bias?
+        mustarlist = t_cvdf[[col for col in t_cvdf.index if
+                             ('mustar_flowline' in col) and
+                             ('cv_' not in col)]].dropna().tolist()
+        mb_mod = MultipleFlowlineMassBalance(gd,
+                                             mu_star=mustarlist,
+                                             bias=t_cvdf.bias,
+                                             )
+
+        refmb['OGGM_tstar'] = mb_mod.get_specific_mb(year=refmb.index)
         cvdf.loc[gd.rgi_id, 'tstar_MB_BIAS'] = (refmb.OGGM_tstar.mean() -
                                                 refmb.ANNUAL_BALANCE.mean())
 
@@ -359,7 +367,8 @@ def minor_xval_statistics(gdirs):
                             'tstar_bias': tbias,
                             'xval_bias': xbias,
                             'interp_bias': ibias,
-                            'mustar': t_cvdf.mustar,
+                            # TODO wie mach ich das mit den Flowline Mus hier?
+                            'mustar': t_cvdf.cv_mu_star_glacierwide,
                             'tstar': t_cvdf.tstar,
                             'xval_mustar': t_cvdf.cv_mustar,
                             'xval_tstar': t_cvdf.cv_tstar,

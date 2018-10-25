@@ -284,13 +284,13 @@ def initialization_selection():
     # Sort for more efficient parallel computing
     rgidf = rgidf.sort_values('Area', ascending=False)
 
-    # these glaciers have really low temp_yr values and therefore produce
-    # really high mu_star values during calibration and crossvalidation.
-    # as this only happens with certain parameters during a major
-    # crossvalidation it is easier to avoid those three glaciers right now.
+    # some glaciers do not work with certain parameter combinations right now.
+    # Will try to catch them later, but just exclude them for no
     rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-16.01638']
     rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-17.14871']
     rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-03.01623']
+    rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-17.14868']
+    rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-17.14874']
 
     # Go - initialize working directories
     gdirs = workflow.init_glacier_regions(rgidf, reset=True, force=True)

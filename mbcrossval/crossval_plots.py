@@ -15,7 +15,7 @@ from mbcrossval import mbcfg
 def crossval_boxplot(file):
     # load pickle file
     xvaldict = pickle.load(open(file, 'rb'))
-    xval = xvaldict['statistic']
+    xval = xvaldict['statistic'].astype(float)
 
     # for convenience
     xval.tgrad *= 1000

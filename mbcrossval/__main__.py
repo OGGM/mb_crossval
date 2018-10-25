@@ -13,7 +13,7 @@ import pickle
 import argparse
 
 # Local imports
-from oggm import cfg, utils
+from oggm import cfg
 from mbcrossval.crossvalidation import initialization_selection, preprocessing
 from mbcrossval.crossvalidation import calibration, minor_xval_statistics
 from mbcrossval.crossval_plots import crossval_timeseries, crossval_histogram
@@ -41,7 +41,8 @@ def run_major_crossvalidation():
 
     # dataframe to store results
     xval = pd.DataFrame([], columns=['prcpsf', 'tliq', 'tmelt', 'tgrad',
-                                     'std_quot', 'bias', 'rmse', 'core'])
+                                     'std_quot', 'bias', 'rmse', 'core',
+                                     'std_oggm', 'std_ref'])
 
     # define each parameter range
     prcpsf = np.arange(mbcfg.PARAMS['prcp1'],
@@ -97,7 +98,8 @@ def run_minor_crossvalidation():
 
     # dataframe to store results
     xval = pd.DataFrame([], columns=['prcpsf', 'tliq', 'tmelt', 'tgrad',
-                                     'std_quot', 'bias', 'rmse', 'core'])
+                                     'std_quot', 'bias', 'rmse', 'core',
+                                     'std_oggm', 'std_ref'])
 
     xval = calibration(gdirs, xval, major=0)
 

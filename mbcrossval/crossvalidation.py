@@ -15,7 +15,6 @@ import geopandas as gpd
 from oggm import cfg, utils, tasks, workflow
 from oggm.workflow import execute_entity_task
 from oggm.core.massbalance import MultipleFlowlineMassBalance
-from oggm.core.climate import t_star_from_refmb
 
 from mbcrossval import mbcfg
 
@@ -116,7 +115,7 @@ def quick_crossval_entity(gdir, full_ref_df=None):
 
     # ----
     # --- MASS-BALANCE MODEL
-    mb_mod = MultipleFlowlineMassBalance(gdir)
+    mb_mod = MultipleFlowlineMassBalance(gdir, use_inversion_flowlines=True)
 
     # Mass-balance timeseries, observed and simulated
     refmb = gdir.get_ref_mb_data().copy()
@@ -333,6 +332,7 @@ def minor_xval_statistics(gdirs):
                              'cv_mustar_flowline' in col]].dropna().tolist()
         mb_mod = MultipleFlowlineMassBalance(gd, mu_star=mustarlist,
                                              bias=t_cvdf.cv_bias,
+                                             use_inversion_flowlines=True
                                              )
         refmb['OGGM_cv'] = mb_mod.get_specific_mb(year=refmb.index)
         # Compare their standard deviation
@@ -354,6 +354,7 @@ def minor_xval_statistics(gdirs):
         mb_mod = MultipleFlowlineMassBalance(gd,
                                              mu_star=t_cvdf.interp_mustar,
                                              bias=t_cvdf.cv_bias,
+                                             use_inversion_flowlines=True
                                              )
         refmb['OGGM_mu_interp'] = mb_mod.get_specific_mb(year=refmb.index)
         cvdf.loc[gd.rgi_id, 'INTERP_MB_BIAS'] = (refmb.OGGM_mu_interp.mean() -
@@ -367,6 +368,7 @@ def minor_xval_statistics(gdirs):
         mb_mod = MultipleFlowlineMassBalance(gd,
                                              mu_star=mustarlist,
                                              bias=t_cvdf.bias,
+                                             use_inversion_flowlines=True
                                              )
 
         refmb['OGGM_tstar'] = mb_mod.get_specific_mb(year=refmb.index)

@@ -161,6 +161,8 @@ setup(
     python_requires='>=3.4',
     # Find packages automatically
     packages=find_packages(exclude=['docs']),
+    # Include package data
+    include_package_data=True,
     # Decided not to let pip install the dependencies, this is too brutal
     install_requires=[],
     # additional groups of dependencies here (e.g. development dependencies).

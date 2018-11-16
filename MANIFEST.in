@@ -1,1 +1,2 @@
 include mbcrossval/*.cfg
+include mbcrossval/jinja_templates/*

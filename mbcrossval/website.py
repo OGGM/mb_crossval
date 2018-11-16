@@ -13,8 +13,8 @@ import numpy as np
 
 # Local imports
 from oggm import utils
-from mbcrossval.crossval_plots import crossval_timeseries, crossval_histogram
-from mbcrossval.crossval_plots import crossval_boxplot
+from mbcrossval.plots import crossval_timeseries, crossval_histogram
+from mbcrossval.plots import crossval_boxplot
 from mbcrossval import mbcfg
 
 

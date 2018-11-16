@@ -5,12 +5,15 @@
 from setuptools import setup, find_packages  # Always prefer setuptools
 from codecs import open  # To use a consistent encoding
 from os import path, walk
-import sys, warnings, importlib, re
+import sys
+import warnings
+import importlib
+import re
 
-MAJOR = 0
+MAJOR = 1
 MINOR = 0
-MICRO = 1
-ISRELEASED = False
+MICRO = 0
+ISRELEASED = True
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 QUALIFIER = ''
 
@@ -167,5 +170,9 @@ setup(
     # Old
     data_files=[],
     # Executable scripts
-    entry_points={},
+    entry_points={
+        'console_scripts': [
+            'mb_crossval = mbcrossval.__main__:main'
+        ]
+    },
 )

@@ -77,25 +77,24 @@ def initialize(cfgfile):
 
     # --- PATHS ---
     # OGGM working directory
-    PATHS['working_dir'] = cp['working_dir']
-    utils.mkdir(PATHS['working_dir'])
+    PATHS['working_dir'] = ''
 
     # Storage directory
-    PATHS['storage_dir'] = cp['storage_dir']
-    utils.mkdir(PATHS['storage_dir'])
+    PATHS['storage_dir'] = ''
 
     # Website root directory
-    PATHS['webroot'] = cp['webroot']
-    utils.mkdir(PATHS['webroot'])
+    PATHS['webroot'] = ''
 
     # Plotdir
-    PATHS['plotdir'] = os.path.join(PATHS['webroot'],
-                                    PARAMS['oggmversion'],
-                                    'plots')
-    utils.mkdir(PATHS['plotdir'])
+    PATHS['plotdir'] = ''
 
-    # directory where jinja templates are stored
+    # directory where jinja templates are stored, could be user defined...
     PATHS['jinjadir'] = cp['jinjadir']
+    # ...or the default templates are used:
+    if PATHS['jinjadir'] == 'None':
+        jinjadir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                'jinja_templates')
+        PATHS['jinjadir'] = jinjadir
 
 
 def substitute_env(filename):

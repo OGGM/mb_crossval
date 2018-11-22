@@ -38,15 +38,15 @@ def main():
     mbcfg.initialize(args.config)
 
     # Working directory
-    mbcfg.PATHS['working_dir'] = args.workdir
+    mbcfg.PATHS['working_dir'] = os.path.abspath(args.workdir)
     utils.mkdir(mbcfg.PATHS['working_dir'])
 
     # Storage directory
-    mbcfg.PATHS['storage_dir'] = args.storage
+    mbcfg.PATHS['storage_dir'] = os.path.abspath(args.storage)
     utils.mkdir(mbcfg.PATHS['storage_dir'])
 
     # Website root directory
-    mbcfg.PATHS['webroot'] = args.webroot
+    mbcfg.PATHS['webroot'] = os.path.abspath(args.webroot)
     utils.mkdir(mbcfg.PATHS['webroot'])
 
     # Plotdir

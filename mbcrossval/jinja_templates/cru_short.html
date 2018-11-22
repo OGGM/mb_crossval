@@ -1,0 +1,56 @@
+<!DOCCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% include 'stylesheet.css' %}
+</head>
+<body>
+
+{% with webroot=webroot %}
+{% include "navbar.html" %}
+{% endwith %}
+
+
+<h1>Mass Balance calibration continuous integration</h1>
+<p>
+    <a href="http://www.cru.uea.ac.uk/">CRU</a> climate data, the
+</p>
+
+
+{% if hasdata %}
+<p>OGGM Version: {{ version }}.</p>
+<p>Output created: {{ date }}.</p>
+
+{{ previous }}
+{{ next }}
+<p></p>
+
+<div class="dr pd wn">
+    <button onclick="myFunction()" class="dropbtn">Select glacier</button>
+    <div id="myDropdown" class="dropdown-content">
+        <input type="text" placeholder="Search.." id="myInput" onkeyup="filterFunction()">
+        {% if index %}
+        {% include 'linklistindex.html' %}
+        {% else %}
+        {% include 'linklist.html' %}
+        {% endif %}
+    </div>
+</div>
+
+{% include 'ddscript.html' %}
+
+<article>
+    <h1>{{ glcname }}</h1>
+    <img src="{{ glcimg }}" width="1200" height="500">
+    <h3>Some statistic:</h3>
+    <p>{{ bias1 }}</p>
+    <p>{{ bias2 }}</p>
+</article>
+
+{% endif %}
+
+</body>
+</html>
+
+
+

@@ -1,10 +1,14 @@
 <!DOCCTYPE html>
 <html>
 <head>
+    <link rel="shortcut icon" href=" {{ nbpaths.icon }}" />
+    <title>OGGM mass balance calibration</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {% include 'stylesheet.css' %}
 </head>
 <body>
+
+<img src="{{ nbpaths.logo }}" alt="OGGM logo">
 
 {% with webroot=webroot %}
 {% include "navbar.html" %}
@@ -60,9 +64,17 @@
 <article>
     <h1>{{ glcname }}</h1>
     <img src="{{ glcimg }}" width="1200" height="500">
-    <h3>Some statistic:</h3>
-    <p>{{ bias1 }}</p>
-    <p>{{ bias2 }}</p>
+    <h3>Some statistics:</h3>
+    <p>{{ statistic.bias1 }}</p>
+    <p>{{ statistic.bias2 }}</p>
+    <p>{{ statistic.rmse }}</p>
+    <p>{{ statistic.core }}</p>
+    <p>{{ statistic.std_quot }}</p>
+    <hr>
+    <p>{{ statistic.prcp }}</p>
+    <p>{{ statistic.tliq }}</p>
+    <p>{{ statistic.tmel }}</p>
+    <p>{{ statistic.tgra }}</p>
 </article>
 
 {% endif %}

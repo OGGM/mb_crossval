@@ -1,7 +1,7 @@
 <style>
 .dropbtn {
-    background-color: #85aac2;
-    color: black;
+    background-color: #326986;
+    color: white;
     padding: 16px;
     font-size: 16px;
     border: none;
@@ -9,8 +9,8 @@
 }
 
 .dropbtn:hover, .dropbtn:focus {
-    background-color: #326986;
-    color: white;
+    background-color: #85aac2;
+    color: black;
 }
 
 #myInput {
@@ -66,20 +66,20 @@ a.neu {
 }
 
 a.neu:hover {
-    background-color: #326986;
-    color: white;
+    background-color: #85aac2;
+    color: black;
 }
 
 .previous {
-    background-color: #85aac2;
-    color: black;
+    background-color: #326986;
+    color: white;
     width: 250px;
     text-align: center;
 }
 
 .next {
-    background-color: #85aac2;
-    color: black;
+    background-color: #326986;
+    color: white;
     width: 250px;
     text-align: center;
 }
@@ -97,7 +97,7 @@ article {
 
 .navbar {
     overflow: hidden;
-    background-color: #333;
+    background-color: #326986;
 }
 
 .navbar a.neu {
@@ -126,7 +126,8 @@ article {
 }
 
 .navbar a.neu:hover, .subnav:hover .subnavbtn {
-    background-color: #326986;
+    background-color: #85aac2;
+    color: black;
 }
 
 .subnav-content {

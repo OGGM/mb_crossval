@@ -1,10 +1,14 @@
 <!DOCCTYPE html>
 <html>
 <head>
+    <link rel="shortcut icon" href=" {{ nbpaths.icon }}" />
+    <title>OGGM mass balance calibration</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {% include 'stylesheet.css' %}
 </head>
 <body>
+
+<img src="{{ nbpaths.logo }}" alt="OGGM logo">
 
 {% with nbpaths=nbpaths %}
 {% include "navbar.html" %}
@@ -22,8 +26,10 @@
     <br>
     Currently there are four different types of cross-validations to look at:
     <ul type="square">
-    <li>Cross-validations for all global reference glaciers</li>
-    <li>Cross-validations for the Alpine reference glaciers</li>
+    <li>Cross-validations for all global reference glaciers
+        (baseline climate data: CRU)</li>
+    <li>Cross-validations for the Alpine reference glaciers
+    (baseline climate data: HISTALP)</li>
     <li>A short cross-validation with the standard model parameters</li>
     <li>A extended cross-validation with varying model parameters</li>
     </ul>

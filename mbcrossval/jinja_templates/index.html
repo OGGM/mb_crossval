@@ -1,0 +1,46 @@
+<!DOCCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% include 'stylesheet.css' %}
+</head>
+<body>
+
+{% with nbpaths=nbpaths %}
+{% include "navbar.html" %}
+{% endwith %}
+
+
+<h1>Mass Balance calibration continuous integration</h1>
+
+<p>This website tracks the performance of the OGGM mass balance calibration
+    across multiple model versions. This allows us to easily see the effects of
+    certain model changes on the mass balance parametrisation of OGGM. <br>
+    <br>
+    <br>
+<u>How to use:</u>
+    <br>
+    Currently there are four different types of cross-validations to look at:
+    <ul type="square">
+    <li>Cross-validations for all global reference glaciers</li>
+    <li>Cross-validations for the Alpine reference glaciers</li>
+    <li>A short cross-validation with the standard model parameters</li>
+    <li>A extended cross-validation with varying model parameters</li>
+    </ul>
+
+    For each setting (which you can reach via the navigation bar) you will find
+    several OGGM model versions to switch between. In this way it is possible
+    to immediately see if a particular model update changed the mass balance
+    calibration.
+    <br>
+
+</p>
+
+
+
+
+</body>
+</html>
+
+
+

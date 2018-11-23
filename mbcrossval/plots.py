@@ -12,7 +12,7 @@ import pickle
 from mbcrossval import mbcfg
 
 
-def crossval_boxplot(file):
+def crossval_boxplot(file, plotdir):
     # load pickle file
     xvaldict = pickle.load(open(file, 'rb'))
     xval = xvaldict['statistic'].astype(float)
@@ -32,7 +32,7 @@ def crossval_boxplot(file):
              'tmelt': 'Melt temperature',
              'tgrad': 'Temperature laps rate'}
 
-    if mbcfg.PARAMS['histalp']:
+    if 'histalp' in os.path.basename(file):
         allvar = {'prcpsf': 1.75, 'tliq': 2.0, 'tmelt': -1.75, 'tgrad': -6.5}
     else:
         allvar = {'prcpsf': 2.5, 'tliq': 2.0, 'tmelt': -1.0, 'tgrad': -6.5}
@@ -100,14 +100,12 @@ def crossval_boxplot(file):
         f.suptitle('Crossvalidation results with respect to %s' % title[var])
 
         # f.tight_layout()
-        plotname = os.path.join(mbcfg.PATHS['plotdir'],
-                                '%s_crossval_box.png' % var)
+        plotname = os.path.join(plotdir, '%s_crossval_box.png' % var)
         f.savefig(plotname, format='png')
+        plt.close(f)
 
-    plt.show()
 
-
-def crossval_timeseries(file):
+def crossval_timeseries(file, plotdir):
     # load pickle file
     xvaldict = pickle.load(open(file, 'rb'))
     data = xvaldict['massbalance']
@@ -141,12 +139,12 @@ def crossval_timeseries(file):
 
         ax1.grid(True)
         f.tight_layout()
-        plotname = os.path.join(mbcfg.PATHS['plotdir'], '%s.png' % gd)
+        plotname = os.path.join(plotdir, '%s.png' % gd)
         f.savefig(plotname, format='png')
         plt.close(f)
 
 
-def crossval_histogram(file):
+def crossval_histogram(file, plotdir):
     # histogramplot of the crossvalidation. compare Marzeion 2012, Figure 3
     # load pickle file
     xvaldict = pickle.load(open(file, 'rb'))
@@ -180,6 +178,7 @@ def crossval_histogram(file):
                color='grey')
     ax2.set_xlabel('Mass-balance error (mm w.e. yr$^{-1}$)')
     ax2.set_title('Interpolated mu_star')
-    plotname = os.path.join(mbcfg.PATHS['plotdir'], 'mb_histogram.png')
+    plotname = os.path.join(plotdir, 'mb_histogram.png')
     plt.tight_layout()
     plt.savefig(plotname, format='png')
+    plt.close(f)

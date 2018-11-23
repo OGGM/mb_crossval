@@ -17,7 +17,7 @@ from mbcrossval.crossvalidation import initialization_selection, preprocessing
 from mbcrossval.crossvalidation import calibration, minor_xval_statistics
 from mbcrossval.plots import (crossval_timeseries, crossval_histogram,
                               crossval_boxplot)
-from mbcrossval.website import create_website
+from mbcrossval.website import website_main
 
 # Module logger
 log = logging.getLogger(__name__)
@@ -30,23 +30,19 @@ def run_main():
 
     if mbcfg.PARAMS['run_minor_crossval']:
         run_minor_crossvalidation()
+        file = os.path.join(mbcfg.PATHS['storage_dir'],
+                            'xval_%s_minor.p' % mbcfg.PARAMS['oggmversion'])
+        crossval_timeseries(file, mbcfg.PATHS['plotdir'])
+        crossval_histogram(file, mbcfg.PATHS['plotdir'])
 
     if mbcfg.PARAMS['run_major_crossval']:
         run_major_crossvalidation()
-
-    if mbcfg.PARAMS['make_minor_plots']:
-        file = os.path.join(mbcfg.PATHS['storage_dir'],
-                            'xval_%s_minor.p' % mbcfg.PARAMS['oggmversion'])
-        crossval_timeseries(file)
-        crossval_histogram(file)
-
-    if mbcfg.PARAMS['make_major_plots']:
         file = os.path.join(mbcfg.PATHS['storage_dir'],
                             'xval_%s_major.p' % mbcfg.PARAMS['oggmversion'])
-        crossval_boxplot(file)
+        crossval_boxplot(file, mbcfg.PATHS['plotdir'])
 
     if mbcfg.PARAMS['make_website']:
-        create_website()
+        website_main()
 
 def run_major_crossvalidation():
     # Initialize OGGM and set up the run parameters

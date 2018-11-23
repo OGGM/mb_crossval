@@ -1,0 +1,57 @@
+<!DOCCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% include 'stylesheet.css' %}
+</head>
+<body>
+
+{% with nbpaths=nbpaths %}
+{% include "navbar.html" %}
+{% endwith %}
+
+
+<h1>Extended mass balance calibration for the global reference glaciers</h1>
+<p>
+    Here you can find results for the cross-validation when the following
+    model parameters are varied:
+    <ul type="square">
+    <li>Precipitation Factor</li>
+    <li>Melt Temperature</li>
+    <li>Liquid Precipitation Temperature</li>
+    <li>Temperature Laps Rate</li>
+    </ul>
+    Each possible parameter combination (1215) is cross-validated and plotted
+    with respect to one of the parameters. The box-whisker plots show the full
+    range of results and the red dots indicates the results when using the
+    proposed standard values.
+    <br>
+    <br>
+    All results for the global reference glaciers are calculated with the
+    <a href="http://www.cru.uea.ac.uk/">CRU</a> climate data set.
+</p>
+
+{% if hasdata %}
+
+<p>OGGM Version: {{ version }}.</p>
+<p>Output created: {{ date }}.</p>
+
+{{ previous }}
+{{ next }}
+<p></p>
+
+
+<article>
+    {% for cv in cvplots %}
+    <img src="plots/{{ cv }}" width="1300" height="700">
+    {% endfor %}
+</article>
+
+{% endif %}
+
+
+</body>
+</html>
+
+
+

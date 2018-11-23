@@ -1,6 +1,6 @@
 <style>
 .dropbtn {
-    background-color: #2976bb;
+    background-color: #85aac2;
     color: black;
     padding: 16px;
     font-size: 16px;
@@ -9,7 +9,8 @@
 }
 
 .dropbtn:hover, .dropbtn:focus {
-    background-color: #3e8e41;
+    background-color: #326986;
+    color: white;
 }
 
 #myInput {
@@ -47,36 +48,40 @@
     overflow: scroll
 }
 
-.dropdown-content a {
+.dropdown-content a.neu {
     color: black;
     padding: 12px 16px;
     text-decoration: none;
     display: block;
 }
 
-.dropdown a:hover {background-color: #ddd}
+.dropdown a.neu:hover {background-color: #85aac2}
 
 .show {display:block;}
 
-a {
+a.neu {
     text-decoration: none;
     display: inline-block;
     padding: 8px 16px;
 }
 
-a:hover {
-    background-color: #3e8e41;
-    color: black;
+a.neu:hover {
+    background-color: #326986;
+    color: white;
 }
 
 .previous {
-    background-color: #2976bb;
+    background-color: #85aac2;
     color: black;
+    width: 250px;
+    text-align: center;
 }
 
 .next {
-    background-color: #2976bb;
+    background-color: #85aac2;
     color: black;
+    width: 250px;
+    text-align: center;
 }
 
 .round {
@@ -88,6 +93,64 @@ article {
     margin-left: 00px;
     padding: 1em;
     overflow: hidden;
+}
+
+.navbar {
+    overflow: hidden;
+    background-color: #333;
+}
+
+.navbar a.neu {
+    float: left;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.subnav {
+    float: left;
+    overflow: hidden;
+}
+
+.subnav .subnavbtn {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: inherit;
+    font-family: inherit;
+    margin: 0;
+}
+
+.navbar a.neu:hover, .subnav:hover .subnavbtn {
+    background-color: #326986;
+}
+
+.subnav-content {
+    display: none;
+    position: absolute;
+    left: 0;
+    background-color: #326986;
+    width: 100%;
+    z-index: 1;
+}
+
+.subnav-content a.neu {
+    float: left;
+    color: white;
+    text-decoration: none;
+}
+
+.subnav-content a.neu:hover {
+    background-color: #85aac2;
+    color: black;
+}
+
+.subnav:hover .subnav-content {
+    display: block;
 }
 
 </style>

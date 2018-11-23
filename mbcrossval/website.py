@@ -184,6 +184,10 @@ def create_major_website(env, vdf, templatefile, nbpaths):
         for key in nbpaths.keys():
             nbpaths1[key] = linksuffix + nbpaths[key]
 
+        # create webdirs of all versions
+        for nr, vers in vdf.iterrows():
+            utils.mkdir(vers['wd'])
+
         for nr, vers in vdf.iterrows():
 
             # read data
@@ -298,10 +302,11 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
             nbpaths1[key] = linksuffix + nbpaths[key]
             nbpaths2[key] = linksuffix + linksuffix + nbpaths[key]
 
+        # create webdirs of all versions
         for nr, vers in vdf.iterrows():
-
-            # create webdir of this version
             utils.mkdir(vers['wd'])
+
+        for nr, vers in vdf.iterrows():
 
             # read data
             xvaldict = pickle.load(open(vers['file'], 'rb'))

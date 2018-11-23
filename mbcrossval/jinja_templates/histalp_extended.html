@@ -11,24 +11,34 @@
 {% endwith %}
 
 
-<h1>Mass Balance calibration continuous integration</h1>
+<h1>Extended mass balance calibration for the Alpine reference glaciers</h1>
 <p>
-    <a href="http://www.zamg.ac.at/histalp/">ZAMG Histalp</a> data was used.
-    The cross-validation with the Histalp data also allowed us to
-    <a href="https://oggm.org/2018/08/10/histalp-parameters/">propose a set of
-        standard model parameters</a> to be used with this data.
-    <br>
-    Additionally the overview also shows results for the cross-validation when
-    varying the model parameters
-    <i>Precipitation Factor</i>,
-    <i>Melt Temperature</i>,
-    <i>Liquid Precipitation Temperature</i> and
-    <i>Temperature Laps Rate</i>.
-    Each possible parameter combination (1215) is cross-validated and plotted
-    with respect to one of the parameters. The box-whisker plots show the full
-    range of results and the red dots indicates the results when useing the
-    proposed standard values.
+    Here you can find results for the cross-validation when the following
+    model parameters are varied:
+<ul type="square">
+    <li>Precipitation Factor</li>
+    <li>Melt Temperature</li>
+    <li>Liquid Precipitation Temperature</li>
+    <li>Temperature Laps Rate</li>
+</ul>
+Each possible parameter combination (1215) is cross-validated and plotted
+with respect to one of the parameters. The box-whisker plots show the full
+range of results and the red dots indicates the results when using the
+proposed standard values.
+<br>
+<br>
+All results for the Alpine reference glaciers are calculated with the
+<a href="http://www.zamg.ac.at/histalp/">ZAMG Histalp</a> data set.
+<br>
+<br>
+It is sensible to use different model parameters for regional model runs with
+different climate data. You can find a extended discussion about the
+proposed model parameters when using the ZAMG HISTALP data set
+<a href="https://oggm.org/2018/08/10/histalp-parameters/">
+    on the OGGM blog</a>.
+<br>
 </p>
+
 
 {% if hasdata %}
 

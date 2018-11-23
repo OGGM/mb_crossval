@@ -30,20 +30,16 @@ def run_main():
 
     if mbcfg.PARAMS['run_minor_crossval']:
         run_minor_crossvalidation()
+        file = os.path.join(mbcfg.PATHS['storage_dir'],
+                            'xval_%s_minor.p' % mbcfg.PARAMS['oggmversion'])
+        crossval_timeseries(file, mbcfg.PATHS['plotdir'])
+        crossval_histogram(file, mbcfg.PATHS['plotdir'])
 
     if mbcfg.PARAMS['run_major_crossval']:
         run_major_crossvalidation()
-
-    if mbcfg.PARAMS['make_minor_plots']:
-        file = os.path.join(mbcfg.PATHS['storage_dir'],
-                            'xval_%s_minor.p' % mbcfg.PARAMS['oggmversion'])
-        crossval_timeseries(file, mbcfg['PATHS']['plotdir'])
-        crossval_histogram(file, mbcfg['PATHS']['plotdir'])
-
-    if mbcfg.PARAMS['make_major_plots']:
         file = os.path.join(mbcfg.PATHS['storage_dir'],
                             'xval_%s_major.p' % mbcfg.PARAMS['oggmversion'])
-        crossval_boxplot(file, mbcfg['PATHS']['plotdir'])
+        crossval_boxplot(file, mbcfg.PATHS['plotdir'])
 
     if mbcfg.PARAMS['make_website']:
         website_main()

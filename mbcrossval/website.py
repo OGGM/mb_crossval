@@ -136,7 +136,7 @@ def catalog_storaged_files():
 
     # and split them into the 4 main different combinations for better handling
     # CRU short
-    cru_short = vdf.loc[(vdf.histalp == 1) & (vdf.min_maj == 'minor')]
+    cru_short = vdf.loc[(vdf.histalp == 0) & (vdf.min_maj == 'minor')]
     cru_short.index = np.arange(len(cru_short))
     # CRU extended
     cru_extended = vdf.loc[(vdf.histalp == 0) & (vdf.min_maj == 'major')]
@@ -145,7 +145,7 @@ def catalog_storaged_files():
     histalp_short = vdf.loc[(vdf.histalp == 1) & (vdf.min_maj == 'minor')]
     histalp_short.index = np.arange(len(histalp_short))
     # HISTALP extended
-    histalp_extended = vdf.loc[(vdf.histalp == 0) & (vdf.min_maj == 'major')]
+    histalp_extended = vdf.loc[(vdf.histalp == 1) & (vdf.min_maj == 'major')]
     histalp_extended.index = np.arange(len(histalp_extended))
 
     return {'cru_short': cru_short, 'histalp_short': histalp_short,
@@ -193,15 +193,16 @@ def create_major_website(env, vdf, templatefile, nbpaths):
             # Add PREVIOUS/NEXT buttons and link them
             if (vers == vdf.iloc[0]).all() & (len(vdf) > 1):
                 # first version, no previous
-                previous = ''
                 nxtlink = os.path.join(linksuffix, vdf.iloc[nr+1]['version'],
                                        templatefile)
                 nxtfile = os.path.join(mbcfg.PATHS['webroot'],
                                        vdf.iloc[nr+1]['version'],
                                        templatefile)
 
-                next = '<a href="%s" class="next">%s &raquo;</a>' % \
-                       (nxtlink, vdf.iloc[nr+1]['version'])
+                previous = '<a class="neu previous" href="#"> </a>'
+                next = ('<a class="neu next" href="%s">%s '
+                        '&raquo;</a>' %
+                        (nxtlink, vdf.iloc[nr+1]['version']))
                 if not os.path.isfile(nxtfile):
                     fbhtml = fallback.render()
                     with open(nxtfile, 'w') as fb:
@@ -209,15 +210,16 @@ def create_major_website(env, vdf, templatefile, nbpaths):
 
             elif (vers == vdf.iloc[-1]).all() & (len(vdf) > 1):
                 # last version, no next
-                next = ''
                 prvlink = os.path.join(linksuffix, vdf.iloc[nr-1]['version'],
                                        templatefile)
                 prvfile = os.path.join(mbcfg.PATHS['webroot'],
                                        vdf.iloc[nr-1]['version'],
                                        templatefile)
 
-                previous = '<a href="%s" class="previous">&laquo; %s</a>' % \
-                           (prvlink, vdf.iloc[nr-1]['version'])
+                next = '<a class="neu next" href="#"> </a>'
+                previous = ('<a class="neu previous" href="%s">'
+                            '&laquo; %s</a>' %
+                            (prvlink, vdf.iloc[nr-1]['version']))
                 if not os.path.isfile(prvfile):
                     fbhtml = fallback.render()
                     with open(prvfile, 'w') as fb:
@@ -236,10 +238,11 @@ def create_major_website(env, vdf, templatefile, nbpaths):
                 prvfile = os.path.join(mbcfg.PATHS['webroot'],
                                        vdf.iloc[nr-1]['version'], templatefile)
 
-                previous = '<a href="%s" class="previous">&laquo; %s</a>' % \
-                           (prvlink, vdf.iloc[nr-1]['version'])
-                next = '<a href="%s" class="next">%s &raquo;</a>' % \
-                       (nxtlink, vdf.iloc[nr+1]['version'])
+                previous = ('<a class="neu previous" href="%s">'
+                            '&laquo; %s</a>' %
+                            (prvlink, vdf.iloc[nr-1]['version']))
+                next = ('<a class="neu next" href="%s">%s &raquo;'
+                        '</a>' % (nxtlink, vdf.iloc[nr+1]['version']))
                 if not os.path.isfile(nxtfile):
                     fbhtml = fallback.render()
                     with open(nxtfile, 'w') as fb:
@@ -369,7 +372,6 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
                 # Add PREVIOUS/NEXT buttons and link them
                 if (vers == vdf.iloc[0]).all() & (len(vdf) > 1):
                     # first version, no previous
-                    previous = ''
                     nxtlink = os.path.join(linksuffix,
                                            vdf.iloc[nr+1]['version'],
                                            glc['link'])
@@ -377,7 +379,9 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
                                            vdf.iloc[nr+1]['version'],
                                            glc['link'])
 
-                    next = ('<a href="%s" class="next">%s &raquo;</a>' %
+                    previous = '<a class="neu previous" href="#"> </a>'
+                    next = ('<a class="neu next" href="%s">%s '
+                            '&raquo;</a>' %
                             (nxtlink, vdf.iloc[nr+1]['version']))
                     if not os.path.isfile(nxtfile):
                         fbhtml = fallback.render()
@@ -386,7 +390,6 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
 
                 elif (vers == vdf.iloc[-1]).all() & (len(vdf) > 1):
                     # last version, no next
-                    next = ''
                     prvlink = os.path.join(linksuffix,
                                            vdf.iloc[nr-1]['version'],
                                            glc['link'])
@@ -394,8 +397,10 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
                                            vdf.iloc[nr-1]['version'],
                                            glc['link'])
 
-                    previous = ('<a href="%s" class="previous">&laquo; %s</a>'
-                                % (prvlink, vdf.iloc[nr-1]['version']))
+                    next = '<a class="neu next" href="#"> </a>'
+                    previous = ('<a class="neu previous" href="%s">'
+                                '&laquo; %s</a>' %
+                                (prvlink, vdf.iloc[nr-1]['version']))
                     if not os.path.isfile(prvfile):
                         fbhtml = fallback.render()
                         with open(prvfile, 'w') as fb:
@@ -418,10 +423,11 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
                                            vdf.iloc[nr-1]['version'],
                                            glc['link'])
 
-                    previous = ('<a href="%s" class="previous">&laquo; %s</a>'
-                                % (prvlink, vdf.iloc[nr-1]['version']))
-                    next = ('<a href="%s" class="next">%s &raquo;</a>' %
-                            (nxtlink, vdf.iloc[nr+1]['version']))
+                    previous = ('<a class="neu previous" href="%s">'
+                                '&laquo; %s</a>' %
+                                (prvlink, vdf.iloc[nr-1]['version']))
+                    next = ('<a class="neu next" href="%s">%s &raquo;'
+                            '</a>' % (nxtlink, vdf.iloc[nr+1]['version']))
                     if not os.path.isfile(nxtfile):
                         fbhtml = fallback.render()
                         with open(nxtfile, 'w') as fb:

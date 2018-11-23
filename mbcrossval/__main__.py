@@ -32,10 +32,23 @@ def main():
                         help='Optional path to configuration file. ' +
                         'Uses defaultconfig.cfg as default.')
 
+    parser.add_argument('--histalp',
+                        dest='histalp',
+                        action='store_true',
+                        help='Optional. Used without argument, will make a ' +
+                             'HISTALP crossvalidation run.')
+
+    parser.set_defaults(histalp=False)
+
     args = parser.parse_args()
 
     # run configuration file
     mbcfg.initialize(args.config)
+
+    # HISTALP
+    mbcfg.PARAMS['histalp'] = args.histalp
+    if mbcfg.PARAMS['histalp']:
+        mbcfg.PARAMS['oggmversion'] = mbcfg.PARAMS['oggmversion'] + '-histalp'
 
     # Working directory
     mbcfg.PATHS['working_dir'] = os.path.abspath(args.workdir)

@@ -11,12 +11,27 @@
 {% endwith %}
 
 
-<h1>Mass Balance calibration continuous integration</h1>
+<h1>Standard mass balance calibration for the Alpine reference glaciers</h1>
 <p>
-    <a href="http://www.zamg.ac.at/histalp/">ZAMG Histalp</a> data was used.
-    The cross-validation with the Histalp data also allowed us to
-    <a href="https://oggm.org/2018/08/10/histalp-parameters/">propose a set of
-        standard model parameters</a> to be used with this data.
+    The general overview of each model version first provides a histogram
+    comparing two different approaches to determine the glaciers temperature
+    sensitivity parameter. For more information on this see
+    <a href="https://www.geosci-model-dev-discuss.net/gmd-2018-9/">
+        Maussion et all. (2018), Figure 4</a>.
+    <br>
+    <br>
+    With <i>Select glacier</i> you can search for and select a specific glacier
+    and see how the mass balance model performs in its case.
+    The plots compare the measured annual mass balance on this glacier with two
+    different OGGM results: For the <i>Calibrated t_star</i> the annual mass
+    balance is used to calibrate the glaciers temperature sensitivity in a way
+    that the resulting mass balance bias is 0.
+    The <i>Crossvalidated t_star</i> does not use the measured mass balance
+    data and therefore represents true model performance.
+
+    <br>
+    All results for the Alpine reference glaciers are calculated with the
+    <a href="http://www.zamg.ac.at/histalp/">ZAMG Histalp</a> data set.
 </p>
 
 

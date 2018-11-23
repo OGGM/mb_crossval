@@ -6,7 +6,7 @@ mbcrossval/meinecfg.cfg
 
 mbcrossval.egg-info/
 
-jinja_templates/linklist.html
-jinja_templates/linklistindex.html
+mbcrossval/jinja_templates/linklist.html
+mbcrossval/jinja_templates/linklistindex.html
 
 .idea

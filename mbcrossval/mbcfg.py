@@ -44,20 +44,11 @@ def initialize(cfgfile):
     if PARAMS['region'] == 'None':
         PARAMS['region'] = None
 
-    # which climate file to use
-    PARAMS['histalp'] = cp.as_bool('histalp')
-
-    # OGGM Version
-    if PARAMS['histalp']:
-        PARAMS['oggmversion'] = oggm.__version__ + '-histalp'
-    else:
-        PARAMS['oggmversion'] = oggm.__version__
+    PARAMS['oggmversion'] = oggm.__version__
 
     # run tasks
     PARAMS['run_major_crossval'] = cp.as_bool('run_major_crossval')
     PARAMS['run_minor_crossval'] = cp.as_bool('run_minor_crossval')
-    PARAMS['make_minor_plots'] = cp.as_bool('make_minor_plots')
-    PARAMS['make_major_plots'] = cp.as_bool('make_major_plots')
     PARAMS['redo_all_plots'] = cp.as_bool('redo_all_plots')
     PARAMS['make_website'] = cp.as_bool('make_website')
 

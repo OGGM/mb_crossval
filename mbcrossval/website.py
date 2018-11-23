@@ -5,6 +5,7 @@ warnings.filterwarnings("once", category=DeprecationWarning)  # noqa
 import os
 import re
 import glob
+from shutil import copyfile
 
 # Libs
 import pandas as pd
@@ -29,6 +30,16 @@ def website_main():
     for fl in files:
         os.remove(fl)
 
+    # copy logos
+    imgpth = os.path.join(mbcfg.PATHS['webroot'], 'img')
+    logo = 'oggm_s_alpha.png'
+    utils.mkdir(imgpth)
+    copyfile(os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                          'favicon.ico'),
+             os.path.join(imgpth, 'favicon.ico'))
+    copyfile(os.path.join(os.path.dirname(os.path.dirname(__file__)), logo),
+             os.path.join(imgpth, logo))
+
     # make a catalogue from all stored versions
     vdf = catalog_storaged_files()
 
@@ -41,6 +52,8 @@ def website_main():
             vpath = ''
         nbpaths[vers] = os.path.join(vpath, '%s.html' % vers)
         nbpaths['webroot'] = 'index.html'
+        nbpaths['icon'] = 'img/favicon.ico'
+        nbpaths['logo'] = 'img/%s' % logo
 
     # create index page
     create_index(env, nbpaths)
@@ -287,9 +300,13 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
 
         for nr, vers in vdf.iterrows():
 
+            # create webdir of this version
+            utils.mkdir(vers['wd'])
+
             # read data
             xvaldict = pickle.load(open(vers['file'], 'rb'))
             df = xvaldict['per_glacier']
+            xstats = xvaldict['statistic']
 
             # sort array
             df.sort_values('Name', inplace=True)
@@ -344,10 +361,39 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
                 # DIFFERENT VALUES DEPENDING ON INDEX OR GLACIER
                 if glc.RGIId == 'Overview':
                     # first: index page
-                    bias1 = '  Mean t_star bias:'.ljust(27) + \
-                            "{0:5.1f}".format(glc['tstar_bias'])
-                    bias2 = 'Mean crossval bias:'.ljust(27) + \
-                            "{0:5.1f}".format(glc['xval_bias'])
+                    statistic = dict()
+                    statistic['bias1'] = ('Mean t_star bias: {0:5.2f} '
+                                          '[mm w.e.] (0 by construction)'.
+                                          format(glc['tstar_bias']))
+                    statistic['bias2'] = ('Mean crossvalidated bias: '
+                                          '{0:5.2f} [mm.w.e]'.
+                                          format(glc['xval_bias']))
+                    statistic['rmse'] = ('Mean crossvalidated RMSE: '
+                                         '{0:5.1f} [mm.w.e]'.
+                                         format(xstats['rmse'].values[0]))
+                    statistic['core'] = ('Mean crossvalidated corelation '
+                                         ' coefficient: {0:5.1f}'.
+                                         format(xstats['core'].values[0]))
+                    statistic['std_quot'] = ('Mean quotient of standard '
+                                             'deviations of modeled '
+                                             '(crossvalidated) and '
+                                             'observed mass balances: '
+                                             '{0:5.1f}'.
+                                             format(xstats['std_quot'].
+                                                    values[0]))
+                    statistic['prcp'] = ('Used Precipitation Factor: '
+                                         '{0:5.2f}'.
+                                         format(xstats['prcpsf'].values[0]))
+                    statistic['tliq'] = ('Used Liquid Precipitation '
+                                         'Temperature: {0:5.2f} [deg C]'.
+                                         format(xstats['tliq'].values[0]))
+                    statistic['tgra'] = ('Used Temperature Laps Rate: '
+                                         '{0:5.2f} [K/km]'.
+                                         format(xstats['tgrad'].
+                                                values[0]*1000))
+                    statistic['tmel'] = ('Used Melt Temperature: '
+                                         '{0:5.2f} [deg C]'.
+                                         format(xstats['tmelt'].values[0]))
 
                     htmlname = os.path.join(vers['verdir'], templatefile)
                     imgname = 'plots/mb_histogram.png'
@@ -357,10 +403,26 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
 
                 else:
                     # second: glacier specific page
-                    bias1 = '    Calibrated MB bias:'.ljust(35) + \
-                            "{0:5.6f}".format(glc['tstar_bias'])
-                    bias2 = 'Crossvalidated MB bias:'.ljust(35) + \
-                            "{0:5.1f}".format(glc['xval_bias'])
+                    statistic = dict()
+                    statistic['bias1'] = ('Calibrated bias: {0:5.2f} '
+                                          '[mm w.e.] (0 by construction)'.
+                                          format(glc['tstar_bias']))
+                    statistic['bias2'] = ('Crossvalidated bias: '
+                                          '{0:5.2f} [mm.w.e]'.
+                                          format(glc['xval_bias']))
+                    statistic['prcp'] = ('Used Precipitation Factor: '
+                                         '{0:5.2f}'.
+                                         format(xstats['prcpsf'].values[0]))
+                    statistic['tliq'] = ('Used Liquid Precipitation '
+                                         'Temperature: {0:5.2f} [deg C]'.
+                                         format(xstats['tliq'].values[0]))
+                    statistic['tgra'] = ('Used Temperature Laps Rate: '
+                                         '{0:5.2f} [K/km]'.
+                                         format(xstats['tgrad'].
+                                                values[0]*1000))
+                    statistic['tmel'] = ('Used Melt Temperature: '
+                                         '{0:5.2f} [deg C]'.
+                                         format(xstats['tmelt'].values[0]))
 
                     htmlname = os.path.join(vers['wd'], glc['RGIId']) + '.html'
                     imgname = '../plots/%s.png' % glc['RGIId']
@@ -441,8 +503,7 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
                                           glcimg=imgname,
                                           version=xvaldict['oggmversion'],
                                           date=xvaldict['date_created'],
-                                          bias1=bias1,
-                                          bias2=bias2,
+                                          statistic=statistic,
                                           index=index,
                                           previous=previous,
                                           next=next,

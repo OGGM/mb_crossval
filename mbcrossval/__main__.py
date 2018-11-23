@@ -37,8 +37,14 @@ def main():
                         action='store_true',
                         help='Optional. Used without argument, will make a ' +
                              'HISTALP crossvalidation run.')
-
     parser.set_defaults(histalp=False)
+
+    parser.add_argument('--extended',
+                        dest='extended',
+                        action='store_true',
+                        help='Optional. Used without argument, a more time ' +
+                             'consuming crossvalidation run will be made.')
+    parser.set_defaults(extended=False)
 
     args = parser.parse_args()
 
@@ -49,6 +55,9 @@ def main():
     mbcfg.PARAMS['histalp'] = args.histalp
     if mbcfg.PARAMS['histalp']:
         mbcfg.PARAMS['oggmversion'] = mbcfg.PARAMS['oggmversion'] + '-histalp'
+
+    # Major crossvalidation
+    mbcfg.PARAMS['run_major_crossval'] = args.extended
 
     # Working directory
     mbcfg.PATHS['working_dir'] = os.path.abspath(args.workdir)

@@ -34,11 +34,11 @@ def website_main():
     imgpth = os.path.join(mbcfg.PATHS['webroot'], 'img')
     logo = 'oggm_s_alpha.png'
     utils.mkdir(imgpth)
-    copyfile(os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                          'favicon.ico'),
-             os.path.join(imgpth, 'favicon.ico'))
-    copyfile(os.path.join(os.path.dirname(os.path.dirname(__file__)), logo),
-             os.path.join(imgpth, logo))
+    copyfile(os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), 'favicon.ico'),
+        os.path.join(imgpth, 'favicon.ico'))
+    copyfile(os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), logo), os.path.join(imgpth, logo))
 
     # make a catalogue from all stored versions
     vdf = catalog_storaged_files()

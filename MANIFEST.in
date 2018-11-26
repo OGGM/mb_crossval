@@ -1,2 +1,4 @@
 include mbcrossval/*.cfg
 include mbcrossval/jinja_templates/*
+include mbcrossval/favicon.ico
+include mbcrossval/oggm_s_alpha.png

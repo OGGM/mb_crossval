@@ -86,6 +86,8 @@ def calibration(gdirs, xval, major=0):
             full_ref_df.loc[glc[0], 'interp_mustar'] = glc[1]
         # write crossvalidation if minor
         file = os.path.join(cfg.PATHS['working_dir'], 'crossval_tstars.csv')
+        # sort first
+        full_ref_df.sort_index(axis=1, inplace=True)
         full_ref_df.to_csv(file)
     return xval
 
@@ -328,8 +330,10 @@ def minor_xval_statistics(gdirs):
 
         # Mass-balance model with cross-validated parameters instead
         # use the cross validated flowline mustars:
-        mustarlist = t_cvdf[[col for col in t_cvdf.index if
-                             'cv_mustar_flowline' in col]].dropna().tolist()
+        cv_fls = [col for col in t_cvdf.index if 'cv_mustar_flowline' in col]
+        cv_fls.sort()
+        mustarlist = t_cvdf[cv_fls].sort_index().dropna().tolist()
+
         mb_mod = MultipleFlowlineMassBalance(gd, mu_star=mustarlist,
                                              bias=t_cvdf.cv_bias,
                                              use_inversion_flowlines=True
@@ -350,7 +354,6 @@ def minor_xval_statistics(gdirs):
         cvdf.loc[gd.rgi_id, 'CV_MB_COR'] = rcor
 
         # Mass-balance model with interpolated mu_star
-        # TODO stimmt das hier mit dem mu_star und bias?
         mb_mod = MultipleFlowlineMassBalance(gd,
                                              mu_star=t_cvdf.interp_mustar,
                                              bias=t_cvdf.cv_bias,
@@ -361,10 +364,10 @@ def minor_xval_statistics(gdirs):
                                                  refmb.ANNUAL_BALANCE.mean())
 
         # Mass-balance model with best guess tstar
-        # TODO stimmt das hier mit dem mu_star und bias?
-        mustarlist = t_cvdf[[col for col in t_cvdf.index if
-                             ('mustar_flowline' in col) and
-                             ('cv_' not in col)]].dropna().tolist()
+        mu_fls = [col for col in t_cvdf.index if ('mustar_flowline' in col)
+                  and ('cv_' not in col)]
+        mu_fls.sort()
+        mustarlist = t_cvdf[mu_fls].sort_index().dropna().tolist()
         mb_mod = MultipleFlowlineMassBalance(gd,
                                              mu_star=mustarlist,
                                              bias=t_cvdf.bias,

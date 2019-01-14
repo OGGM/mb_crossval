@@ -48,23 +48,27 @@ def preprocessing(gdirs):
 def calibration(gdirs, xval, major=0):
 
     # once for reference t_stars
-    with utils.DisableLogger():
-        tasks.compute_ref_t_stars(gdirs)
-        execute_entity_task(tasks.local_t_star, gdirs)
-        execute_entity_task(tasks.mu_star_calibration, gdirs)
+    tasks.compute_ref_t_stars(gdirs)
+    execute_entity_task(tasks.local_t_star, gdirs)
+    execute_entity_task(tasks.mu_star_calibration, gdirs)
 
     full_ref_df = pd.read_csv(os.path.join(cfg.PATHS['working_dir'],
                                            'ref_tstars.csv'), index_col=0)
     out = execute_entity_task(quick_crossval_entity, gdirs,
                               full_ref_df=full_ref_df)
 
-    # length of xval dict
+    # length of xval dict to get current position
     _x = len(xval)
     xval.loc[_x] = 0
+    nans = np.array([])
 
     for col in xval.columns:
+        if col == 'nans':
+            continue
+        values = np.array([])
         for glc in out:
-            xval.loc[_x, col] += glc[0][col]
+            # xval.loc[_x, col] += glc[0][col]  # TODO
+            values = np.append(values, glc[0][col])
 
             if not major:
                 # store cross validated values
@@ -72,11 +76,23 @@ def calibration(gdirs, xval, major=0):
                     if ('cv_' in key) or ('mu_star' in key) or\
                             ('mustar' in key):
                         full_ref_df.loc[glc[1]['rgi_id'], key] = glc[1][key]
-        # calculate means
-        xval.loc[_x, col] = xval.loc[_x, col] / len(out)
+
+        # sum of nans = number of failed glaciers
+        nans = np.append(nans, np.isnan(values).sum())
+        # calculate means of bias, rmse, ...
+        xval.loc[_x, col] = np.nanmean(values)
     # calculate standard deviation quotient
     xval.loc[_x, 'std_quot'] = (xval.loc[_x, 'std_oggm'] /
                                 xval.loc[_x, 'std_ref'])
+
+    # treat and save nans:
+    nans = nans[nans != len(gdirs)]
+    if (nans == 0).all():
+        xval.loc[_x, 'nans'] = 0
+    elif nans[nans != 0].mean() == nans.max():
+        xval.loc[_x, 'nans'] = nans.max()
+    else:
+        raise RuntimeError('something unexpected happened during nan counting')
 
     if not major:
         # get interpolated mu star
@@ -106,9 +122,6 @@ def quick_crossval_entity(gdir, full_ref_df=None):
     # before the cross-val store the info about "real" mustar
     ref_rdf = gdir.read_json('local_mustar')
 
-    # It's probably cleaner to call t_star_from_refmb here.
-    # But I don't think it will have a large influence.
-    # t_star_from_refmb(gdir, glacierwide=True)
     tasks.local_t_star(gdir, ref_df=tmp_ref_df)
     tasks.mu_star_calibration(gdir)
 
@@ -214,7 +227,7 @@ def initialization_selection():
 
     # Set to True for operational runs
     # maybe also here?
-    cfg.PARAMS['continue_on_error'] = False
+    cfg.PARAMS['continue_on_error'] = True
 
     # set negative flux filtering to false. should be standard soon
     cfg.PARAMS['filter_for_neg_flux'] = False
@@ -267,7 +280,6 @@ def initialization_selection():
     # Let OGGM do it:
     gdirs = workflow.init_glacier_regions(rgidf)
     # We need to know which period we have data for
-
     if mbcfg.PARAMS['histalp']:
         cfg.PARAMS['baseline_climate'] = 'HISTALP'
         execute_entity_task(tasks.process_histalp_data, gdirs)
@@ -284,14 +296,6 @@ def initialization_selection():
 
     # Sort for more efficient parallel computing
     rgidf = rgidf.sort_values('Area', ascending=False)
-
-    # some glaciers do not work with certain parameter combinations right now.
-    # Will try to catch them later, but just exclude them for no
-    rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-16.01638']
-    rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-17.14871']
-    rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-03.01623']
-    rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-17.14868']
-    rgidf = rgidf.loc[rgidf.RGIId != 'RGI60-17.14874']
 
     # Go - initialize working directories
     gdirs = workflow.init_glacier_regions(rgidf, reset=True, force=True)

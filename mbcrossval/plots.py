@@ -17,6 +17,12 @@ def crossval_boxplot(file, plotdir):
     xvaldict = pickle.load(open(file, 'rb'))
     xval = xvaldict['statistic'].astype(float)
 
+    try:
+        glcs = xvaldict['glaciers']
+    except KeyError:
+        # Legacy
+        glcs = None
+
     # for convenience
     xval.tgrad *= 1000
     xval.tgrad = np.round(xval.tgrad, decimals=1)
@@ -36,6 +42,7 @@ def crossval_boxplot(file, plotdir):
         allvar = {'prcpsf': 1.75, 'tliq': 2.0, 'tmelt': -1.75, 'tgrad': -6.5}
     else:
         allvar = {'prcpsf': 2.5, 'tliq': 2.0, 'tmelt': -1.0, 'tgrad': -6.5}
+        allvar = {'prcpsf': 1.5, 'tliq': 1.0, 'tmelt': -1.75, 'tgrad': -5.5}
 
     for var in allvar.keys():
         f, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2, figsize=(13, 7))
@@ -49,6 +56,12 @@ def crossval_boxplot(file, plotdir):
                         np.isclose(xval[idx[1]], var0[idx[1]]) &
                         np.isclose(xval[idx[2]], var0[idx[2]])]
 
+        try:
+            nans = xval.groupby(by=var).sum()['nans']
+        except KeyError:
+            # Legacy
+            nans = None
+
         # RMSE
         xval.boxplot(column='rmse', by=var, ax=ax0, grid=False,
                      positions=base[var], widths=0.2, showfliers=False)
@@ -59,6 +72,13 @@ def crossval_boxplot(file, plotdir):
         ax0.set_title('')
         ax0.set_ylim((200, 800))
         ax0.plot((allvar[var], allvar[var]), ax0.get_ylim(), 'k-', linewidth=1)
+
+        if nans is not None:
+            ax0b = ax0.twiny()
+            ax0b.set_xlim(ax0.get_xlim())
+            ax0b.set_xticks(nans.index.values)
+            xtl = ['# %d' % i for i in nans]
+            ax0b.set_xticklabels(xtl)
 
         # BIAS
         xval.boxplot(column='bias', by=var, ax=ax1, grid=False,
@@ -72,6 +92,13 @@ def crossval_boxplot(file, plotdir):
         ax1.set_ylim((-400, 100))
         ax1.plot((allvar[var], allvar[var]), ax1.get_ylim(), 'k-', linewidth=1)
 
+        if nans is not None:
+            ax1b = ax1.twiny()
+            ax1b.set_xlim(ax1.get_xlim())
+            ax1b.set_xticks(nans.index.values)
+            xtl = ['# %d' % i for i in nans]
+            ax1b.set_xticklabels(xtl)
+
         # STD quotient
         xval.boxplot(column='std_quot', by=var, ax=ax2, grid=False,
                      positions=base[var], widths=0.2, showfliers=False)
@@ -84,6 +111,13 @@ def crossval_boxplot(file, plotdir):
         ax2.set_ylim((0, 3))
         ax2.plot((allvar[var], allvar[var]), ax2.get_ylim(), 'k-', linewidth=1)
 
+        if nans is not None:
+            ax2b = ax2.twiny()
+            ax2b.set_xlim(ax2.get_xlim())
+            ax2b.set_xticks(nans.index.values)
+            xtl = ['# %d' % i for i in nans]
+            ax2b.set_xticklabels(xtl)
+
         # CORE
         xval.boxplot(column='core', by=var, ax=ax3, grid=False,
                      positions=base[var], widths=0.2, showfliers=False)
@@ -95,11 +129,29 @@ def crossval_boxplot(file, plotdir):
         ax3.set_ylim((0.55, 0.65))
         ax3.plot((allvar[var], allvar[var]), ax3.get_ylim(), 'k-', linewidth=1)
 
-        # figure stuff
+        if nans is not None:
+            ax3b = ax3.twiny()
+            ax3b.set_xlim(ax3.get_xlim())
+            ax3b.set_xticks(nans.index.values)
+            xtl = ['# %d' % i for i in nans]
+            ax3b.set_xticklabels(xtl)
 
-        f.suptitle('Crossvalidation results with respect to %s' % title[var])
+        # title stuff
+        maintitle = 'Crossvalidation results with respect to %s' % title[var]
+        if nans is not None:
+            maintitle = maintitle + '  (for %d reference glaciers)' % glcs
 
-        # f.tight_layout()
+            rmtxt = ("'# x' indicates number of removed glaciers for this "
+                     "parameter combination")
+            plt.text(x=0.5, y=0.92, s=rmtxt, fontsize=9, ha="center",
+                     transform=f.transFigure)
+
+        f.suptitle('')
+
+        plt.text(x=0.5, y=0.96, s=maintitle, fontsize=14, ha="center",
+                 transform=f.transFigure)
+
+        f.tight_layout(rect=[0, 0.01, 1, 0.90])
         plotname = os.path.join(plotdir, '%s_crossval_box.png' % var)
         f.savefig(plotname, format='png')
         plt.close(f)

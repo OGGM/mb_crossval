@@ -44,6 +44,7 @@ def run_main():
     if mbcfg.PARAMS['make_website']:
         website_main()
 
+
 def run_major_crossvalidation():
     # Initialize OGGM and set up the run parameters
 
@@ -58,7 +59,7 @@ def run_major_crossvalidation():
     # dataframe to store results
     xval = pd.DataFrame([], columns=['prcpsf', 'tliq', 'tmelt', 'tgrad',
                                      'std_quot', 'bias', 'rmse', 'core',
-                                     'std_oggm', 'std_ref'])
+                                     'std_oggm', 'std_ref', 'nans'])
 
     # define each parameter range
     prcpsf = np.arange(mbcfg.PARAMS['prcp1'],
@@ -91,7 +92,8 @@ def run_major_crossvalidation():
 
     outdict = {'statistic': xval,
                'date_created': datetime.datetime.now().strftime('%Y-%m-%d'),
-               'oggmversion': mbcfg.PARAMS['oggmversion']}
+               'oggmversion': mbcfg.PARAMS['oggmversion'],
+               'glaciers': len(gdirs)}
 
     pout = os.path.join(mbcfg.PATHS['storage_dir'],
                         'xval_%s_major.p' % mbcfg.PARAMS['oggmversion'])
@@ -112,7 +114,7 @@ def run_minor_crossvalidation():
     # dataframe to store results
     xval = pd.DataFrame([], columns=['prcpsf', 'tliq', 'tmelt', 'tgrad',
                                      'std_quot', 'bias', 'rmse', 'core',
-                                     'std_oggm', 'std_ref'])
+                                     'std_oggm', 'std_ref', 'nans'])
 
     xval = calibration(gdirs, xval, major=0)
 

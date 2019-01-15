@@ -64,8 +64,7 @@ def crossval_boxplot(file, plotdir):
         # RMSE
         xval.boxplot(column='rmse', by=var, ax=ax0, grid=False,
                      positions=base[var], widths=0.2, showfliers=False)
-        base.plot(x=var, y='rmse', kind='scatter', ax=ax0, color='r',
-                  linewidth=3, )
+        ax0.plot(base[var].values, base['rmse'].values, 'or')
         ax0.set_ylabel('mean rmse')
         ax0.set_xlabel('')
         ax0.set_title('')
@@ -82,8 +81,7 @@ def crossval_boxplot(file, plotdir):
         # BIAS
         xval.boxplot(column='bias', by=var, ax=ax1, grid=False,
                      positions=base[var], widths=0.2, showfliers=False)
-        base.plot(x=var, y='bias', kind='scatter', ax=ax1, color='r',
-                  linewidth=3)
+        ax1.plot(base[var].values, base['bias'].values, 'or')
         ax1.plot(ax1.get_xlim(), (0.0, 0.0), 'k-', linewidth=1)
         ax1.set_ylabel('mean bias')
         ax1.set_xlabel('')
@@ -101,8 +99,7 @@ def crossval_boxplot(file, plotdir):
         # STD quotient
         xval.boxplot(column='std_quot', by=var, ax=ax2, grid=False,
                      positions=base[var], widths=0.2, showfliers=False)
-        base.plot(x=var, y='std_quot', kind='scatter', ax=ax2, color='r',
-                  linewidth=3)
+        ax2.plot(base[var].values, base['std_quot'].values, 'or')
         ax2.plot(ax2.get_xlim(), (1.0, 1.0), 'k-', linewidth=1)
         ax2.set_xlabel(labels[var])
         ax2.set_ylabel('mean std quotient')
@@ -120,8 +117,7 @@ def crossval_boxplot(file, plotdir):
         # CORE
         xval.boxplot(column='core', by=var, ax=ax3, grid=False,
                      positions=base[var], widths=0.2, showfliers=False)
-        base.plot(x=var, y='core', kind='scatter', ax=ax3, color='r',
-                  linewidth=3)
+        ax3.plot(base[var].values, base['core'].values, 'or')
         ax3.set_xlabel(labels[var])
         ax3.set_ylabel('mean corelation')
         ax3.set_title('')
@@ -138,10 +134,11 @@ def crossval_boxplot(file, plotdir):
         # title stuff
         maintitle = 'Crossvalidation results with respect to %s' % title[var]
         if nans is not None:
-            maintitle = maintitle + '  (for %d reference glaciers)' % glcs
+            maintitle = maintitle + '  (%d reference glaciers)' % glcs
 
-            rmtxt = ("'# x' indicates number of removed glaciers for this "
-                     "parameter combination")
+            rmtxt = ("'# x': number of removed data points (from a total of "
+                     "%d data points per %s value)"
+                     % (len(xval.groupby(idx))*glcs, title[var]))
             plt.text(x=0.5, y=0.92, s=rmtxt, fontsize=9, ha="center",
                      transform=f.transFigure)
 
@@ -150,7 +147,7 @@ def crossval_boxplot(file, plotdir):
         plt.text(x=0.5, y=0.96, s=maintitle, fontsize=14, ha="center",
                  transform=f.transFigure)
 
-        f.tight_layout(rect=[0, 0.01, 1, 0.90])
+        f.tight_layout(pad=0.5, w_pad=2.0, h_pad=2.0, rect=[0, 0.01, 1, 0.90])
         plotname = os.path.join(plotdir, '%s_crossval_box.png' % var)
         f.savefig(plotname, format='png')
         plt.close(f)

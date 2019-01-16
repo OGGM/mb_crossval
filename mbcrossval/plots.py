@@ -31,12 +31,12 @@ def crossval_boxplot(file, plotdir):
     labels = {'prcpsf': 'Precipitation Factor',
               'tliq': 'T liquid precipitation [deg C]',
               'tmelt': 'Melt temperature [deg C]',
-              'tgrad': 'Temperature laps rate [K/km]'}
+              'tgrad': 'Temperature lapse rate [K/km]'}
     # some plotting stuff:
     title = {'prcpsf': 'Precipitation Factor',
              'tliq': 'Liquid precipitation temperature',
              'tmelt': 'Melt temperature',
-             'tgrad': 'Temperature laps rate'}
+             'tgrad': 'Temperature lapse rate'}
 
     if 'histalp' in os.path.basename(file):
         allvar = {'prcpsf': 1.75, 'tliq': 2.0, 'tmelt': -1.75, 'tgrad': -6.5}
@@ -119,7 +119,7 @@ def crossval_boxplot(file, plotdir):
                      positions=base[var], widths=0.2, showfliers=False)
         ax3.plot(base[var].values, base['core'].values, 'or')
         ax3.set_xlabel(labels[var])
-        ax3.set_ylabel('mean corelation')
+        ax3.set_ylabel('mean correlation')
         ax3.set_title('')
         ax3.set_ylim((0.55, 0.65))
         ax3.plot((allvar[var], allvar[var]), ax3.get_ylim(), 'k-', linewidth=1)

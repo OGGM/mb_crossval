@@ -376,7 +376,7 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
                     statistic['rmse'] = ('Mean crossvalidated RMSE: '
                                          '{0:5.1f} [mm.w.e]'.
                                          format(xstats['rmse'].values[0]))
-                    statistic['core'] = ('Mean crossvalidated corelation '
+                    statistic['core'] = ('Mean crossvalidated correlation '
                                          ' coefficient: {0:5.1f}'.
                                          format(xstats['core'].values[0]))
                     statistic['std_quot'] = ('Mean quotient of standard '
@@ -392,7 +392,7 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
                     statistic['tliq'] = ('Used Liquid Precipitation '
                                          'Temperature: {0:5.2f} [deg C]'.
                                          format(xstats['tliq'].values[0]))
-                    statistic['tgra'] = ('Used Temperature Laps Rate: '
+                    statistic['tgra'] = ('Used Temperature Lapse Rate: '
                                          '{0:5.2f} [K/km]'.
                                          format(xstats['tgrad'].
                                                 values[0]*1000))
@@ -421,7 +421,7 @@ def create_minor_website(env, vdf, templatefile, nbpaths):
                     statistic['tliq'] = ('Used Liquid Precipitation '
                                          'Temperature: {0:5.2f} [deg C]'.
                                          format(xstats['tliq'].values[0]))
-                    statistic['tgra'] = ('Used Temperature Laps Rate: '
+                    statistic['tgra'] = ('Used Temperature Lapse Rate: '
                                          '{0:5.2f} [K/km]'.
                                          format(xstats['tgrad'].
                                                 values[0]*1000))

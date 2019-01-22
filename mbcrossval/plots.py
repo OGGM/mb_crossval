@@ -142,11 +142,11 @@ def crossval_boxplot(file, plotdir):
             plt.text(x=0.5, y=0.92, s=rmtxt, fontsize=9, ha="center",
                      transform=f.transFigure)
 
-        f.suptitle('')
-
-        plt.text(x=0.5, y=0.96, s=maintitle, fontsize=14, ha="center",
-                 transform=f.transFigure)
-
+        f.suptitle(maintitle)
+        f.subplots_adjust(hspace=0.1, wspace=0.1)
+        # f.suptitle('')
+        #plt.text(x=0.5, y=0.96, s=maintitle, fontsize=14, ha="center",
+        #         transform=f.transFigure)
         # f.tight_layout(pad=0.5, w_pad=2.0, h_pad=2.0, rect=[0, 0.01, 1, 0.90])
         plotname = os.path.join(plotdir, '%s_crossval_box.png' % var)
         f.savefig(plotname, format='png')

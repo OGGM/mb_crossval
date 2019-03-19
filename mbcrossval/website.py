@@ -143,7 +143,16 @@ def catalog_storaged_files():
             # happens for version 1.1 etc
             _vmain += ['0']
 
-        int_version = _vmain + [_tmp[1].split('.')[0]]
+        if len(_tmp) == 2:
+            # this should be the regular case
+            int_version = _vmain + [_tmp[1].split('.')[0]]
+        elif len(_tmp) == 1:
+            # this might happen for specially released versions
+            int_version = _vmain + ['0']
+        else:
+            # this should not happen
+            raise ValueError('Could not recognize the version from file %s'
+                             % x)
 
         vdf = vdf.append({'version': parts[1],
                           'min_maj': parts[2].split('.')[0],

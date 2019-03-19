@@ -129,6 +129,10 @@ def catalog_storaged_files():
     for x in os.listdir(mbcfg.PATHS['storage_dir']):
         parts = x.split('_')
 
+        # If file is not a xval pickle, continue
+        if (parts[0] != 'xval') or (parts[-1][-2:] != '.p'):
+            continue
+
         webdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'web')
         pltdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'plots')
 

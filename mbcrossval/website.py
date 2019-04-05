@@ -139,6 +139,7 @@ def catalog_storaged_files():
         # make a integer version column for easier sorting
         _tmp = parts[1].split('+')
         _vmain = _tmp[0].split('.')
+        _vmain = [''.join(c for c in vm if c.isdigit()) for vm in _vmain]
         if len(_vmain) == 2:
             # happens for version 1.1 etc
             _vmain += ['0']

@@ -25,7 +25,10 @@ def website_main():
     file_loader = FileSystemLoader(mbcfg.PATHS['jinjadir'])
     env = Environment(loader=file_loader)
 
-    # first clean all potential old html files
+    # make a catalogue from all stored versions first. If this fails: stop!
+    vdf = catalog_storaged_files()
+
+    # clean all potential old html files
     files = glob.glob(mbcfg.PATHS['webroot'] + '/**/*.html', recursive=True)
     for fl in files:
         os.remove(fl)
@@ -39,9 +42,6 @@ def website_main():
              os.path.join(imgpth, 'favicon.ico'))
     copyfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), logo),
              os.path.join(imgpth, logo))
-
-    # make a catalogue from all stored versions
-    vdf = catalog_storaged_files()
 
     # make a dictonary with the latest versions vor linking
     nbpaths = {}
@@ -136,25 +136,6 @@ def catalog_storaged_files():
         webdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'web')
         pltdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'plots')
 
-        # make a integer version column for easier sorting
-        _tmp = parts[1].split('+')
-        _vmain = _tmp[0].split('.')
-        _vmain = [''.join(c for c in vm if c.isdigit()) for vm in _vmain]
-        if len(_vmain) == 2:
-            # happens for version 1.1 etc
-            _vmain += ['0']
-
-        if len(_tmp) == 2:
-            # this should be the regular case
-            int_version = _vmain + [_tmp[1].split('.')[0]]
-        elif len(_tmp) == 1:
-            # this might happen for specially released versions
-            int_version = _vmain + ['0']
-        else:
-            # this should not happen
-            raise ValueError('Could not recognize the version from file %s'
-                             % x)
-
         vdf = vdf.append({'version': parts[1],
                           'min_maj': parts[2].split('.')[0],
                           'file': os.path.join(mbcfg.PATHS['storage_dir'], x),
@@ -162,12 +143,10 @@ def catalog_storaged_files():
                           'verdir': os.path.join(mbcfg.PATHS['webroot'],
                                                  parts[1]),
                           'pd': pltdir,
-                          'histalp': 'histalp' in parts[1],
-                          'int_version': np.array(int_version,
-                                                  dtype=int).tolist()},
+                          'histalp': 'histalp' in parts[1]},
                          ignore_index=True)
 
-    vdf = vdf.sort_values(by='int_version')
+    vdf = vdf.sort_values(by='version')
 
     # and split them into the 4 main different combinations for better handling
     # CRU short

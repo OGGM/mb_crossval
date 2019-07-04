@@ -136,7 +136,16 @@ def catalog_storaged_files():
         webdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'web')
         pltdir = os.path.join(mbcfg.PATHS['webroot'], parts[1], 'plots')
 
+        sort_version = parts[1]
+
+        if ('.dev' in sort_version) & ('+' in sort_version):
+            _v1 = sort_version.split('.dev')
+            _v2 = _v1[1].split('+')
+            sort_version = ''.join([_v1[0], '.dev',
+                                    '{:03d}'.format(int(_v2[0])), '+', _v2[1]])
+
         vdf = vdf.append({'version': parts[1],
+                          'sort_version': sort_version,
                           'min_maj': parts[2].split('.')[0],
                           'file': os.path.join(mbcfg.PATHS['storage_dir'], x),
                           'wd': webdir,
@@ -146,7 +155,7 @@ def catalog_storaged_files():
                           'histalp': 'histalp' in parts[1]},
                          ignore_index=True)
 
-    vdf = vdf.sort_values(by='version')
+    vdf = vdf.sort_values(by='sort_version')
 
     # and split them into the 4 main different combinations for better handling
     # CRU short

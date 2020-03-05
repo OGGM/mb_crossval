@@ -122,7 +122,7 @@ def check_dependencies(package_names):
 
 req_packages = ['numpy',
                 'scipy',
-                'pandas',
+                'pandas<1.0',
                 'matplotlib',
                 'oggm',
                 'jinja2'

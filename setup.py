@@ -164,7 +164,7 @@ setup(
     # Include package data
     include_package_data=True,
     # Decided not to let pip install the dependencies, this is too brutal
-    install_requires=[],
+    install_requires=req_packages,
     # additional groups of dependencies here (e.g. development dependencies).
     extras_require={},
     # data files that need to be installed

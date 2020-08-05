@@ -13,6 +13,7 @@ import geopandas as gpd
 
 # Local imports
 from oggm import cfg, utils, tasks, workflow
+from oggm.shop import cru
 from oggm.workflow import execute_entity_task
 from oggm.core.massbalance import MultipleFlowlineMassBalance
 
@@ -239,8 +240,8 @@ def initialization_selection():
     cfg.PARAMS['tstar_search_glacierwide'] = True
 
     # Pre-download other files which will be needed later
-    _ = utils.get_cru_file(var='tmp')
-    _ = utils.get_cru_file(var='pre')
+    _ = cru.get_cru_file(var='tmp')
+    _ = cru.get_cru_file(var='pre')
     rgi_dir = utils.get_rgi_dir(version=cfg.PATHS['rgi_version'])
 
     # Get the reference glacier ids (they are different for each RGI version)
